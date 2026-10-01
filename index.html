@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Conta Junto — Dashboard TV (v25)</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root{
+      --bg:#f8fafc;
+      --stroke:rgba(15,23,42,.08);
+      --text:#0f172a;
+      --muted:#64748b;
+      --blue:#2563eb;
+      --green:#16a34a;
+      --red:#dc2626;
+      --amber:#d97706;
+      --shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.08);
+      --card-bg: #ffffff;
+      --r20:12px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:Inter,system-ui,-apple-system,sans-serif;
+      background: #f1f5f9;
+      color:var(--text);
+      overflow:hidden;
+    }
+
+    .wrap{
+      height:100%; padding:14px;
+      display:grid;
+      grid-template-rows:56px 1fr 20px;
+      gap:14px;
+    }
+
+    header{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 20px;
+      background:var(--card-bg);
+      border:1px solid var(--stroke); border-radius:var(--r20); box-shadow:var(--shadow);
+    }
+    .brand{display:flex; gap:10px; align-items:center;}
+    .logo{
+      width:32px; height:32px; border-radius:8px;
+      background: linear-gradient(135deg, var(--blue), #3b82f6);
+      position:relative; overflow:hidden;
+    }
+    .brand h1{margin:0; font-size:18px; letter-spacing:-.01em; color:#1e293b;}
+    .brand .sub{margin:0 0 0; font-size:11px; color:var(--muted); font-weight:500;}
+
+    .rightHeader{display:flex; align-items:center; gap:10px;}
+    .pill{
+      display:flex; align-items:center; gap:6px;
+      padding:5px 12px; border-radius:6px;
+      background:#f1f5f9; border:1px solid var(--stroke);
+      font-weight:600; font-size:12px; color:#334155;
+    }
+    .dot{width:6px;height:6px;border-radius:50%;}
+    .dot.ok{background:var(--green); box-shadow:0 0 0 2px rgba(22,163,74,.15);}
+    .dot.bad{background:var(--red); box-shadow:0 0 0 2px rgba(220,38,38,.15);}
+    .dot.warn{background:var(--amber); box-shadow:0 0 0 2px rgba(217,119,6,.15);}
+
+    main{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:18px;
+      min-height:0;
+    }
+
+    .panel{
+      display:flex; flex-direction:column;
+      background: transparent; border: none; padding:0;
+      min-height:0; overflow:hidden;
+    }
+
+    .sectionHeader{
+      display:flex; justify-content:space-between; align-items:center;
+      margin-bottom:8px; padding:0 2px;
+    }
+    .sectionHeader h2{
+      margin:0; font-size:14px; font-weight:700; color:#334155; display:flex; align-items:center; gap:6px;
+    }
+    .badge{
+      font-size:10px; font-weight:600; padding:3px 8px; border-radius:4px;
+      background:#e2e8f0; color:#475569;
+    }
+
+    .deptGrid{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap:14px;
+      height:100%; min-height:0;
+    }
+
+    .deptCard{
+      background:var(--card-bg);
+      border:1px solid var(--stroke);
+      border-radius:14px;
+      box-shadow:var(--shadow);
+      padding:12px;
+      display:flex; flex-direction:column; justify-content:space-between;
+      position:relative; overflow:hidden;
+    }
+
+    @keyframes bgPulse {
+      0% { background-color: #fff; border-color: rgba(220,38,38,0.3); }
+      50% { background-color: #fef2f2; border-color: rgba(220,38,38,1); }
+      100% { background-color: #fff; border-color: rgba(220,38,38,0.3); }
+    }
+    @keyframes textFlash { 0%,100%{opacity:1} 50%{opacity:0.6} }
+
+    .deptCard.alert {
+      animation: bgPulse 2s infinite ease-in-out;
+      box-shadow: 0 2px 12px rgba(220,38,38,0.15);
+    }
+    .alertBadge {
+      position:absolute; top:8px; right:8px;
+      background:var(--red); color:#fff;
+      font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.05em;
+      padding:4px 8px; border-radius:4px;
+      box-shadow: 0 2px 6px rgba(220,38,38,0.3);
+      display:none;
+      animation: textFlash 1.5s infinite;
+      z-index: 10;
+    }
+    .deptCard.alert .alertBadge { display:block; }
+    .deptCard.alert .deptTitle { color:var(--red); }
+
+    .deptTitle{
+      font-size:15px;
+      font-weight:800;
+      text-transform: uppercase; color: #334155;
+      margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+      padding-right: 70px;
+    }
+
+    .chartWrap{
+      flex:1; position:relative; width:100%; min-height:0;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .chartWrap canvas{max-height:72% !important; max-width:80%;}
+
+    .chartOverlay{
+      position:absolute; inset:0;
+      display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:none;
+    }
+    .chartPct{
+      font-size:35px;
+      font-weight:800; color:var(--text); letter-spacing:-.03em; line-height:1;
+    }
+    .chartLabel{font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; margin-top:2px;}
+
+    .deptFooter{
+      display:grid; grid-template-columns:1fr 1fr 1fr;
+      gap:4px; padding-top:8px; margin-top:4px;
+      border-top:1px solid #f1f5f9;
+    }
+    .statItem{display:flex; flex-direction:column; align-items:center; justify-content:center;}
+    .statVal{
+      font-size:18px;
+      font-weight:800; line-height:1; color:#334155;
+    }
+    .statLabel{font-size:10px; font-weight:700; color:#94a3b8; text-transform:uppercase; margin-top:2px;}
+
+    .c-green{color:var(--green) !important}
+    .c-blue{color:var(--blue) !important}
+    .c-red{color:var(--red) !important}
+
+    footer{display:flex; justify-content:space-between; align-items:center; padding:0 8px; color:#94a3b8; font-size:11px; font-weight:600;}
+
+    .diag{
+      position:absolute; left:20px; right:20px; bottom:60px; display:none;
+      padding:12px; border-radius:10px; border:1px solid #fca5a5;
+      background:#fef2f2; color:#991b1b; box-shadow:var(--shadow); z-index:999;
+    }
+    .diag.show{display:block}
+    .diag code{display:block; margin-top:6px; font-family:monospace; background:rgba(0,0,0,0.05); padding:6px; border-radius:4px; font-size:11px;}
+
+    @media (max-width: 1200px){
+      .deptGrid{grid-template-rows: auto; grid-auto-rows: 240px;}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>Conta Junto</h1>
+          <div class="sub">Painel Operacional</div>
+        </div>
+      </div>
+      <div class="rightHeader">
+        <div class="pill">🕒 <span id="clock">--:--:--</span></div>
+        <div class="pill"><span class="dot" id="loadDot"></span><span id="loadLabel">Carregando...</span></div>
+      </div>
+    </header>
+
+    <main>
+      <section class="panel">
+        <div class="sectionHeader">
+          <h2>📊 Status de Tarefas</h2>
+          <span class="badge" id="deptBadge">Top 6 Depts</span>
+        </div>
+        <div class="deptGrid" id="deptGrid"></div>
+      </section>
+
+    </main>
+
+    <footer>
+      <div>Fonte: Acessórias • <span id="sourceInfo">—</span></div>
+      <div>Atualizado em <span id="updatedAt">—</span></div>
+    </footer>
+  </div>
+
+  <div class="diag" id="diag">
+    <h3>⚠️ Falha de Conexão</h3>
+    <p id="diagMsg">—</p>
+    <code id="diagUrl">—</code>
+  </div>
+
+<script>
+/* =============================================
+   CONFIGURAÇÕES
+============================================= */
+// dados.json é gerado do Acessórias pelo sincronizar.py (GitHub Actions, a cada 10 min).
+const DADOS_URL = "dados.json";
+const REFRESH_MS = 60 * 1000;
+// Sem atualização há mais que isso, o painel avisa que a rotina do GitHub parou.
+const DESATUALIZADO_MS = 45 * 60 * 1000;
+
+/* =============================================
+   UTILITÁRIOS
+============================================= */
+const el = (id) => document.getElementById(id);
+
+function setState(state, label){
+  const dot = el("loadDot");
+  dot.classList.remove("ok","bad","warn");
+  if(state==="ok") dot.classList.add("ok");
+  if(state==="bad") dot.classList.add("bad");
+  if(state==="warn") dot.classList.add("warn");
+  el("loadLabel").textContent = label;
+}
+
+function showDiag(show, msg="", url=""){
+  const box = el("diag");
+  box.classList.toggle("show", !!show);
+  if(show){ el("diagMsg").textContent = msg||"—"; el("diagUrl").textContent = url||"—"; }
+}
+
+function brDate(d){
+  if(!(d instanceof Date)||isNaN(d)) return "—";
+  return `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
+}
+function brTime(d){
+  if(!(d instanceof Date)||isNaN(d)) return "—";
+  return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+}
+function todayStart(){ const d=new Date(); d.setHours(0,0,0,0); return d; }
+
+function parseDate(x){
+  if(x===null||x===undefined) return null;
+  if(x instanceof Date&&!isNaN(x)){ const d=new Date(x); d.setHours(0,0,0,0); return d; }
+  const s=String(x).trim(); if(!s||s.startsWith("0000")) return null;
+  let m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(m) return new Date(`${m[1]}-${m[2]}-${m[3]}T00:00:00`);
+  m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if(m) return new Date(`${m[3]}-${String(m[2]).padStart(2,"0")}-${String(m[1]).padStart(2,"0")}T00:00:00`);
+  const d=new Date(s); return isNaN(d)?null:d;
+}
+
+function escapeHtml(s){
+  return String(s||"").replace(/[&<>"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[c]));
+}
+
+/* =============================================
+   ACESSÓRIAS (dados.json)
+============================================= */
+async function loadAcessorias(){
+  const url=`${DADOS_URL}?t=${Date.now()}`; // fura o cache do GitHub Pages
+  let res;
+  try{
+    res = await fetch(url,{cache:"no-store"});
+  }catch(e){
+    throw {kind:"network",msg:"Sem conexão para buscar os dados do painel.",url:DADOS_URL};
+  }
+  if(!res.ok) throw {kind:"http",msg:`dados.json: HTTP ${res.status}. A rotina do GitHub já rodou?`,url:DADOS_URL};
+  return await res.json();
+}
+
+/* =============================================
+   RENDERIZAÇÃO
+============================================= */
+const chartInstances = new Map();
+function clearDeptGrid(){
+  el("deptGrid").innerHTML="";
+  for(const ch of chartInstances.values()){ try{ ch.destroy(); }catch(e){} }
+  chartInstances.clear();
+}
+
+function buildDeptCard(parent, deptName){
+  const card=document.createElement("div"); card.className="deptCard";
+  const badge=document.createElement("div"); badge.className="alertBadge"; badge.innerHTML="⚠️ ATENÇÃO";
+  card.appendChild(badge);
+  const title=document.createElement("div"); title.className="deptTitle"; title.textContent=deptName;
+  const wrap=document.createElement("div"); wrap.className="chartWrap";
+  const canvas=document.createElement("canvas");
+  const overlay=document.createElement("div"); overlay.className="chartOverlay";
+  overlay.innerHTML=`<span class="chartPct" data-pct>0%</span><span class="chartLabel">Concluído</span>`;
+  wrap.appendChild(canvas); wrap.appendChild(overlay);
+  const footer=document.createElement("div"); footer.className="deptFooter";
+  footer.innerHTML=`
+    <div class="statItem"><span class="statVal c-green" data-done>0</span><span class="statLabel">Concl.</span></div>
+    <div class="statItem"><span class="statVal c-blue" data-open>0</span><span class="statLabel">Abertas</span></div>
+    <div class="statItem"><span class="statVal c-red" data-late>0</span><span class="statLabel">Atraso</span></div>
+  `;
+  card.appendChild(title); card.appendChild(wrap); card.appendChild(footer);
+  parent.appendChild(card);
+  return {canvas,footer,overlay,card};
+}
+
+function upsertDoughnut(canvas, key, counts){
+  const data=[counts.done, counts.late, counts.onTime, counts.noDue];
+  const colors=["#16a34a","#dc2626","#3b82f6","#cbd5e1"];
+  const prev=chartInstances.get(key);
+  if(prev){ prev.data.datasets[0].data=data; prev.update(); return; }
+  chartInstances.set(key, new Chart(canvas.getContext("2d"),{
+    type:"doughnut",
+    data:{datasets:[{data,backgroundColor:colors,borderWidth:0,hoverOffset:4,spacing:3}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:"75%",plugins:{legend:{display:false}}}
+  }));
+}
+
+// Entregas do Acessórias: {d: departamento, p: prazo (AAAA-MM-DD), s: C=concluída | A=aberta | D=dispensada}
+function computeTaskMetrics(rows){
+  const t0=todayStart();
+  // Dispensadas ficam fora da conta, como as "Desconsideradas" do Onvio.
+  const mapped=rows.filter(r=>r.s!=="D").map(r=>({
+    status:r.s,
+    dept:String(r.d||"").trim()||"Sem departamento",
+    venc:parseDate(r.p),
+  }));
+  const isDone=(x)=>x.status==="C";
+  const isOpen=(x)=>x.status==="A";
+  const deptMap=new Map();
+  for(const x of mapped){
+    const key=x.dept;
+    if(!deptMap.has(key)) deptMap.set(key,{done:0,late:0,onTime:0,noDue:0,open:0});
+    const d=deptMap.get(key);
+    if(isDone(x)){d.done++;continue;}
+    if(isOpen(x)){d.open++;if(!x.venc){d.noDue++;continue;} if(x.venc<t0)d.late++;else d.onTime++;}
+  }
+  return {deptMap};
+}
+
+function renderDepartments(m){
+  clearDeptGrid();
+  const grid=el("deptGrid");
+  const list=[...m.deptMap.entries()].map(([dept,c])=>({dept,...c})).sort((a,b)=>(b.open-a.open)||(b.late-a.late));
+  for(const item of list.slice(0,6)){
+    const {canvas,footer,overlay,card}=buildDeptCard(grid,item.dept);
+    if(item.late>0) card.classList.add("alert");
+    footer.querySelector("[data-done]").textContent=item.done;
+    footer.querySelector("[data-open]").textContent=item.open;
+    footer.querySelector("[data-late]").textContent=item.late;
+    const totalDept=item.done+item.open;
+    const pct=totalDept>0?Math.round((item.done/totalDept)*100):0;
+    overlay.querySelector("[data-pct]").textContent=`${pct}%`;
+    upsertDoughnut(canvas,item.dept,item);
+  }
+}
+
+function mesLabel(ym){
+  const m=String(ym||"").match(/^(\d{4})-(\d{2})/);
+  return m?`${m[2]}/${m[1]}`:"—";
+}
+
+/* =============================================
+   LOOP PRINCIPAL
+============================================= */
+async function loadAll(){
+  setState("warn","Carregando...");
+  try{
+    const tasks=await loadAcessorias();
+    const metrics=computeTaskMetrics(Object.values(tasks.entregas||{}));
+    renderDepartments(metrics);
+    const sinc=new Date(tasks.atualizado_em);
+    el("updatedAt").textContent=`${brDate(sinc)}, ${brTime(sinc)}`;
+    el("sourceInfo").textContent=`Entregas com prazo em ${mesLabel(tasks.mes)}`;
+    if(Date.now()-sinc.getTime() > DESATUALIZADO_MS) setState("warn","Dados desatualizados");
+    else setState("ok","Atualizado");
+    showDiag(false);
+  }catch(err){
+    setState("bad","Erro");
+    showDiag(true,err.msg||String(err),err.url||DADOS_URL);
+  }
+}
+
+/* =============================================
+   CLOCK + INIT
+============================================= */
+function tickClock(){ el("clock").textContent=new Date().toLocaleTimeString("pt-BR"); }
+setInterval(tickClock,1000); tickClock();
+loadAll();
+setInterval(loadAll,REFRESH_MS);
+</script>
+</body>
+</html>
