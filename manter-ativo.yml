@@ -1,0 +1,22 @@
+# Em repositório público, o GitHub desliga rotinas agendadas após 60 dias sem atividade.
+# Um commit vazio por mês mantém o "Atualizar painel" rodando.
+name: Manter rotina ativa
+
+on:
+  schedule:
+    - cron: "0 9 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  manter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit --allow-empty -m "Manter rotina do painel ativa"
+          git push

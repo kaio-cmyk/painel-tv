@@ -1,0 +1,63 @@
+# Publica no GitHub Pages o painel e o dados.json gerado do Acessórias.
+# Publicação pública dos dados (departamento, prazo, situação) autorizada pelo Kaio em 01/10/2026.
+name: Atualizar painel
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+    inputs:
+      completo:
+        description: "Forçar busca completa (empresa por empresa)"
+        type: boolean
+        default: false
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: painel
+  cancel-in-progress: false
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    env:
+      TZ: America/Sao_Paulo
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Baixar dados da rodada anterior
+        run: |
+          mkdir -p _site
+          curl -fsSL "${{ steps.pages.outputs.base_url }}/dados.json?t=$(date +%s)" -o anterior.json \
+            || echo "Sem dados anteriores: a rodada será completa."
+
+      - name: Buscar entregas no Acessórias
+        env:
+          ACESSORIAS_TOKEN: ${{ secrets.ACESSORIAS_TOKEN }}
+        run: python sincronizar.py --anterior anterior.json --saida _site/dados.json ${{ inputs.completo && '--completo' || '' }}
+
+      - run: cp index.html _site/
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deploy
+        uses: actions/deploy-pages@v4
