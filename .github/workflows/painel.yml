@@ -18,6 +18,7 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  actions: write  # para a rodada disparar a próxima
 
 concurrency:
   group: painel
@@ -33,6 +34,8 @@ jobs:
     env:
       TZ: America/Sao_Paulo
     steps:
+      - run: echo "INICIO=$(date +%s)" >> "$GITHUB_ENV"
+
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
@@ -61,3 +64,15 @@ jobs:
 
       - id: deploy
         uses: actions/deploy-pages@v4
+
+      # O agendamento do GitHub roda de 3 em 3 horas ou mais, não de 10 em 10 min. Por isso
+      # cada rodada completa 10 min e dispara a próxima; o cron só reinicia a corrente se ela
+      # parar. Rodadas duplicadas se anulam pelo concurrency (só fica uma na fila).
+      - name: Agendar a próxima rodada
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          restante=$(( 600 - ($(date +%s) - INICIO) ))
+          if [ "$restante" -gt 0 ]; then sleep "$restante"; fi
+          gh workflow run painel.yml --repo "$GITHUB_REPOSITORY" --ref main
