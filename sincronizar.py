@@ -4,7 +4,7 @@ Roda no GitHub Actions a cada 10 min (.github/workflows/painel.yml) e também lo
   python sincronizar.py [--anterior dados.json] [--saida dados.json] [--completo]
 
 Entregas = obrigações e tarefas com prazo no mês atual. O arquivo publicado só leva
-departamento, prazo e situação: nada de cliente, CNPJ ou responsável.
+departamento, datas (prazo técnico, atraso, entrega) e situação: nada de cliente, CNPJ ou responsável.
 
   - completo: empresa por empresa (a API só lista o escritório inteiro para alterações de
     ontem/hoje). Roda sem arquivo anterior, a cada 3 h e na virada do mês. Leva ~8 min.
@@ -32,6 +32,8 @@ sys.stdout.reconfigure(encoding="utf-8")
 
 BASE = "https://api.acessorias.com"
 INTERVALO_COMPLETO = timedelta(hours=3)
+# Sobe quando muda o formato das entregas: força a busca completa para refazer todas.
+VERSAO = 2
 # No máximo 1 chamada por segundo (~60/min): folga no limite de 100/min, que o MCP e o
 # P.I.V.O. também usam. Cada chamada leva ~3 s, então 4 em paralelo para chegar nesse ritmo.
 PAUSA_REQ = 1.0
@@ -116,7 +118,12 @@ def converter(emp, e):
     else:
         sit = "A"
     chave = cfg.get("EntID") or f'{emp.get("ID")}|{e.get("Nome")}|{e.get("EntCompetencia")}|{e.get("EntDtPrazo")}'
-    return str(chave), {"d": cfg.get("DptoNome") or "Sem departamento", "p": e.get("EntDtPrazo"), "s": sit}
+    # p = prazo técnico (meta interna); a = data em que vira "Atrasada!"; e = dia da entrega
+    item = {"d": cfg.get("DptoNome") or "Sem departamento", "p": e.get("EntDtPrazo"),
+            "a": e.get("EntDtAtraso") or e.get("EntDtPrazo"), "s": sit}
+    if entregue:
+        item["e"] = e["EntDtEntrega"]
+    return str(chave), item
 
 
 def paginar_entregas(caminho, **query):
@@ -194,6 +201,7 @@ def main():
     precisa_completo = (
         a.completo
         or not ant
+        or ant.get("versao") != VERSAO
         or ant.get("mes") != mes
         or datetime.fromisoformat(ant["completo_em"]) < inicio - INTERVALO_COMPLETO
         # a API só aceita ontem ou hoje no DtLastDH do ListAll
@@ -209,6 +217,7 @@ def main():
 
     dados = {
         "fonte": "Acessórias",
+        "versao": VERSAO,
         "mes": mes,
         "atualizado_em": inicio.isoformat(),
         "completo_em": completo_em.isoformat(),

@@ -21,6 +21,7 @@
       --green:#16a34a;
       --red:#dc2626;
       --amber:#d97706;
+      --teal:#0d9488;
       --shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.08);
       --card-bg: #ffffff;
       --r20:12px;
@@ -133,6 +134,15 @@
       z-index: 10;
     }
     .deptCard.alert .alertBadge { display:block; }
+    /* Prazo técnico vencido, ainda antes da data de atraso: aviso sem piscar */
+    .deptCard.warn:not(.alert) { border-color: rgba(217,119,6,.55); }
+    .warnBadge {
+      position:absolute; top:8px; right:8px;
+      background:var(--amber); color:#fff;
+      font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.05em;
+      padding:4px 8px; border-radius:4px; display:none; z-index:10;
+    }
+    .deptCard.warn:not(.alert) .warnBadge { display:block; }
     .deptCard.alert .deptTitle { color:var(--red); }
 
     .deptTitle{
@@ -158,9 +168,11 @@
       font-weight:800; color:var(--text); letter-spacing:-.03em; line-height:1;
     }
     .chartLabel{font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; margin-top:2px;}
+    .chartToday{font-size:13px; font-weight:800; color:var(--teal); margin-top:6px; visibility:hidden;}
+    .chartToday.show{visibility:visible;}
 
     .deptFooter{
-      display:grid; grid-template-columns:1fr 1fr 1fr;
+      display:grid; grid-template-columns:repeat(5, 1fr);
       gap:4px; padding-top:8px; margin-top:4px;
       border-top:1px solid #f1f5f9;
     }
@@ -169,11 +181,14 @@
       font-size:18px;
       font-weight:800; line-height:1; color:#334155;
     }
-    .statLabel{font-size:10px; font-weight:700; color:#94a3b8; text-transform:uppercase; margin-top:2px;}
+    .statLabel{font-size:10px; font-weight:700; color:#94a3b8; text-transform:uppercase; margin-top:2px; white-space:nowrap;}
+    .statLabel::before{content:""; display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--dot); margin-right:4px; vertical-align:1px;}
 
     .c-green{color:var(--green) !important}
     .c-blue{color:var(--blue) !important}
     .c-red{color:var(--red) !important}
+    .c-teal{color:var(--teal) !important}
+    .c-amber{color:var(--amber) !important}
 
     footer{display:flex; justify-content:space-between; align-items:center; padding:0 8px; color:#94a3b8; font-size:11px; font-weight:600;}
 
@@ -311,19 +326,22 @@ function clearDeptGrid(){
 
 function buildDeptCard(parent, deptName){
   const card=document.createElement("div"); card.className="deptCard";
-  const badge=document.createElement("div"); badge.className="alertBadge"; badge.innerHTML="⚠️ ATENÇÃO";
-  card.appendChild(badge);
+  const badge=document.createElement("div"); badge.className="alertBadge"; badge.innerHTML="⚠️ ATRASO";
+  const warn=document.createElement("div"); warn.className="warnBadge"; warn.innerHTML="⏱ PRAZO TÉCNICO";
+  card.appendChild(badge); card.appendChild(warn);
   const title=document.createElement("div"); title.className="deptTitle"; title.textContent=deptName;
   const wrap=document.createElement("div"); wrap.className="chartWrap";
   const canvas=document.createElement("canvas");
   const overlay=document.createElement("div"); overlay.className="chartOverlay";
-  overlay.innerHTML=`<span class="chartPct" data-pct>0%</span><span class="chartLabel">Concluído</span>`;
+  overlay.innerHTML=`<span class="chartPct" data-pct>0%</span><span class="chartLabel">Concluído</span><span class="chartToday" data-hoje></span>`;
   wrap.appendChild(canvas); wrap.appendChild(overlay);
   const footer=document.createElement("div"); footer.className="deptFooter";
   footer.innerHTML=`
-    <div class="statItem"><span class="statVal c-green" data-done>0</span><span class="statLabel">Concl.</span></div>
-    <div class="statItem"><span class="statVal c-blue" data-open>0</span><span class="statLabel">Abertas</span></div>
-    <div class="statItem"><span class="statVal c-red" data-late>0</span><span class="statLabel">Atraso</span></div>
+    <div class="statItem"><span class="statVal c-teal" data-today>0</span><span class="statLabel" style="--dot:${CORES.hoje}">Hoje</span></div>
+    <div class="statItem"><span class="statVal c-green" data-done>0</span><span class="statLabel" style="--dot:${CORES.concl}">Concl.</span></div>
+    <div class="statItem"><span class="statVal c-blue" data-ontime>0</span><span class="statLabel" style="--dot:${CORES.prazo}">No prazo</span></div>
+    <div class="statItem"><span class="statVal c-amber" data-tec>0</span><span class="statLabel" style="--dot:${CORES.tec}">Pz. técnico</span></div>
+    <div class="statItem"><span class="statVal c-red" data-late>0</span><span class="statLabel" style="--dot:${CORES.atraso}">Atraso</span></div>
   `;
   card.appendChild(title); card.appendChild(wrap); card.appendChild(footer);
   parent.appendChild(card);
@@ -331,8 +349,8 @@ function buildDeptCard(parent, deptName){
 }
 
 function upsertDoughnut(canvas, key, counts){
-  const data=[counts.done, counts.late, counts.onTime, counts.noDue];
-  const colors=["#16a34a","#dc2626","#3b82f6","#cbd5e1"];
+  const data=[counts.doneBefore, counts.doneToday, counts.late, counts.tec, counts.onTime, counts.noDue];
+  const colors=[CORES.concl, CORES.hoje, CORES.atraso, CORES.tec, CORES.prazo, CORES.semPrazo];
   const prev=chartInstances.get(key);
   if(prev){ prev.data.datasets[0].data=data; prev.update(); return; }
   chartInstances.set(key, new Chart(canvas.getContext("2d"),{
@@ -342,24 +360,32 @@ function upsertDoughnut(canvas, key, counts){
   }));
 }
 
-// Entregas do Acessórias: {d: departamento, p: prazo (AAAA-MM-DD), s: C=concluída | A=aberta | D=dispensada}
+const CORES={concl:"#16a34a", hoje:"#14b8a6", atraso:"#dc2626", tec:"#f59e0b", prazo:"#3b82f6", semPrazo:"#cbd5e1"};
+
+// Entregas do Acessórias: {d: departamento, p: prazo técnico, a: data em que vira "Atrasada!",
+// e: dia da entrega, s: C=concluída | A=aberta | D=dispensada}. Datas AAAA-MM-DD.
 function computeTaskMetrics(rows){
   const t0=todayStart();
-  // Dispensadas ficam fora da conta, como as "Desconsideradas" do Onvio.
-  const mapped=rows.filter(r=>r.s!=="D").map(r=>({
-    status:r.s,
-    dept:String(r.d||"").trim()||"Sem departamento",
-    venc:parseDate(r.p),
-  }));
-  const isDone=(x)=>x.status==="C";
-  const isOpen=(x)=>x.status==="A";
+  const novo=()=>({done:0,doneToday:0,doneBefore:0,open:0,late:0,tec:0,onTime:0,noDue:0});
   const deptMap=new Map();
-  for(const x of mapped){
-    const key=x.dept;
-    if(!deptMap.has(key)) deptMap.set(key,{done:0,late:0,onTime:0,noDue:0,open:0});
+  // Dispensadas ficam fora da conta, como as "Desconsideradas" do Onvio.
+  for(const r of rows){
+    if(r.s==="D") continue;
+    const key=String(r.d||"").trim()||"Sem departamento";
+    if(!deptMap.has(key)) deptMap.set(key,novo());
     const d=deptMap.get(key);
-    if(isDone(x)){d.done++;continue;}
-    if(isOpen(x)){d.open++;if(!x.venc){d.noDue++;continue;} if(x.venc<t0)d.late++;else d.onTime++;}
+    if(r.s==="C"){
+      d.done++;
+      const ent=parseDate(r.e);
+      if(ent&&ent.getTime()===t0.getTime()) d.doneToday++; else d.doneBefore++;
+      continue;
+    }
+    d.open++;
+    const prazo=parseDate(r.p), atraso=parseDate(r.a)||prazo;
+    if(!prazo) d.noDue++;
+    else if(atraso<t0) d.late++;   // passou da data de atraso: atrasada de verdade
+    else if(prazo<t0) d.tec++;     // só o prazo técnico venceu
+    else d.onTime++;
   }
   return {deptMap};
 }
@@ -371,12 +397,18 @@ function renderDepartments(m){
   for(const item of list.slice(0,6)){
     const {canvas,footer,overlay,card}=buildDeptCard(grid,item.dept);
     if(item.late>0) card.classList.add("alert");
-    footer.querySelector("[data-done]").textContent=item.done;
-    footer.querySelector("[data-open]").textContent=item.open;
+    if(item.tec>0) card.classList.add("warn");
+    footer.querySelector("[data-today]").textContent=item.doneToday;
+    footer.querySelector("[data-done]").textContent=item.doneBefore;
+    footer.querySelector("[data-ontime]").textContent=item.onTime+item.noDue;
+    footer.querySelector("[data-tec]").textContent=item.tec;
     footer.querySelector("[data-late]").textContent=item.late;
     const totalDept=item.done+item.open;
     const pct=totalDept>0?Math.round((item.done/totalDept)*100):0;
     overlay.querySelector("[data-pct]").textContent=`${pct}%`;
+    const hoje=overlay.querySelector("[data-hoje]");
+    hoje.textContent=`+${item.doneToday} entregue${item.doneToday!==1?"s":""} hoje`;
+    hoje.classList.toggle("show",item.doneToday>0);
     upsertDoughnut(canvas,item.dept,item);
   }
 }
