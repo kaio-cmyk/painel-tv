@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>Conta Junto — Dashboard TV (v26)</title>
+  <title>Conta Junto — Dashboard TV (v27)</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,6 +15,7 @@
     :root{
       /* 1u ≈ 1% da largura numa tela 16:9 (19px em Full HD, 38px em 4K): tudo escala junto */
       --u: min(1vw, 1.778vh);
+      --f: calc(var(--u)*.88); /* unidade das letras: 12% menor que a das medidas */
       --stroke:rgba(15,23,42,.08);
       --text:#0f172a;
       --muted:#64748b;
@@ -54,15 +55,15 @@
       width:calc(var(--u)*2.3); height:calc(var(--u)*2.3); border-radius:calc(var(--u)*.5);
       background:linear-gradient(135deg, var(--blue), #3b82f6);
     }
-    .brand h1{margin:0; font-size:calc(var(--u)*1.5); line-height:1.1; letter-spacing:-.01em; color:#1e293b;}
-    .brand .sub{font-size:calc(var(--u)*.85); color:var(--muted); font-weight:600;}
+    .brand h1{margin:0; font-size:calc(var(--f)*1.5); line-height:1.1; letter-spacing:-.01em; color:#1e293b;}
+    .brand .sub{font-size:calc(var(--f)*.85); color:var(--muted); font-weight:600;}
 
     .rightHeader{display:flex; align-items:center; gap:calc(var(--u)*.6);}
     .pill{
       display:flex; align-items:center; gap:calc(var(--u)*.45);
       padding:calc(var(--u)*.35) calc(var(--u)*.8); border-radius:calc(var(--u)*.4);
       background:#f1f5f9; border:1px solid var(--stroke);
-      font-weight:700; font-size:calc(var(--u)*1.05); color:#334155;
+      font-weight:700; font-size:calc(var(--f)*1.05); color:#334155;
     }
     .dot{width:calc(var(--u)*.55); height:calc(var(--u)*.55); border-radius:50%;}
     .dot.ok{background:var(--green); box-shadow:0 0 0 3px rgba(22,163,74,.18);}
@@ -101,7 +102,7 @@
 
     .badge{
       position:absolute; top:calc(var(--u)*.8); right:calc(var(--u)*.9);
-      color:#fff; font-size:calc(var(--u)*.85); font-weight:800;
+      color:#fff; font-size:calc(var(--f)*.85); font-weight:800;
       text-transform:uppercase; letter-spacing:.04em;
       padding:calc(var(--u)*.25) calc(var(--u)*.6); border-radius:calc(var(--u)*.3);
       display:none; z-index:10;
@@ -112,7 +113,7 @@
     .deptCard.warn:not(.alert) .warnBadge{ display:block; }
 
     .deptTitle{
-      font-size:calc(var(--u)*1.5); font-weight:800; line-height:1.15;
+      font-size:calc(var(--f)*1.5); font-weight:800; line-height:1.15;
       text-transform:uppercase; letter-spacing:.01em; color:#334155;
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
       padding-right:calc(var(--u)*9);
@@ -130,12 +131,12 @@
       display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:none;
     }
     .chartPct{
-      font-size:calc(var(--u)*3); font-size:min(calc(var(--u)*3.6), 17cqmin); font-weight:900; color:var(--text);
+      font-size:calc(var(--f)*3); font-size:min(calc(var(--f)*3.6), 15cqmin); font-weight:900; color:var(--text);
       letter-spacing:-.04em; line-height:1;
     }
-    .chartLabel{font-size:calc(var(--u)*.85); font-size:min(calc(var(--u)*.85), 4.2cqmin); font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin-top:calc(var(--u)*.25);}
+    .chartLabel{font-size:calc(var(--f)*.85); font-size:min(calc(var(--f)*.85), 3.7cqmin); font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin-top:calc(var(--u)*.25);}
     .chartToday{
-      font-size:calc(var(--u)*1.05); font-size:min(calc(var(--u)*1.05), 5.4cqmin); font-weight:800; color:var(--teal);
+      font-size:calc(var(--f)*1.05); font-size:min(calc(var(--f)*1.05), 4.75cqmin); font-weight:800; color:var(--teal);
       margin-top:calc(var(--u)*.35); visibility:hidden;
     }
     .chartToday.show{visibility:visible;}
@@ -146,10 +147,10 @@
       border-top:2px solid #f1f5f9;
     }
     .statItem{display:flex; flex-direction:column; align-items:center; justify-content:center; min-width:0;}
-    .statVal{font-size:calc(var(--u)*2.1); font-weight:900; line-height:1; letter-spacing:-.02em;}
+    .statVal{font-size:calc(var(--f)*2.1); font-weight:900; line-height:1; letter-spacing:-.02em;}
     .statVal.zero{opacity:.3;}
     .statLabel{
-      font-size:calc(var(--u)*.8); font-weight:700; color:#64748b;
+      font-size:calc(var(--f)*.8); font-weight:700; color:#64748b;
       margin-top:calc(var(--u)*.3); white-space:nowrap;
     }
     .statLabel::before{
@@ -162,14 +163,14 @@
 
     footer{
       display:flex; justify-content:space-between; align-items:center;
-      padding:0 calc(var(--u)*.5); color:#64748b; font-size:calc(var(--u)*.75); font-weight:600;
+      padding:0 calc(var(--u)*.5); color:#64748b; font-size:calc(var(--f)*.75); font-weight:600;
     }
 
     .diag{
       position:absolute; left:calc(var(--u)*1); right:calc(var(--u)*1); bottom:calc(var(--u)*3); display:none;
       padding:calc(var(--u)*.8); border-radius:calc(var(--u)*.6); border:1px solid #fca5a5;
       background:#fef2f2; color:#991b1b; box-shadow:var(--shadow); z-index:999;
-      font-size:calc(var(--u)*.9);
+      font-size:calc(var(--f)*.9);
     }
     .diag.show{display:block}
     .diag h3{margin:0 0 calc(var(--u)*.3);}
@@ -178,7 +179,7 @@
 
     /* Telas em pé (celular, monitor vertical): cards em coluna com altura fixa */
     @media (max-aspect-ratio: 1/1){
-      :root{ --u: 2.2vw; }
+      :root{ --u: 2.2vw; --f: calc(var(--u)*.88); }
       body{overflow:auto;}
       .wrap{height:auto; grid-template-rows:auto auto auto;}
       header{padding:calc(var(--u)*.8) calc(var(--u)*1.2);}
