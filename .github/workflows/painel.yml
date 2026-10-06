@@ -56,6 +56,13 @@ jobs:
           ACESSORIAS_TOKEN: ${{ secrets.ACESSORIAS_TOKEN }}
         run: python sincronizar.py --anterior anterior.json --saida _site/dados.json ${{ inputs.completo && '--completo' || '' }}
 
+      # Tela de CSAT (WhatsApp). Se falhar, o painel segue só com a tela operacional.
+      - name: Buscar CSAT no Bradial
+        continue-on-error: true
+        env:
+          BRADIAL_API_KEY: ${{ secrets.BRADIAL_API_KEY }}
+        run: python csat.py --saida _site/csat.json
+
       - run: cp index.html _site/
 
       - uses: actions/upload-pages-artifact@v3
