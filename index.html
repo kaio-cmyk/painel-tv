@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>Conta Junto — Dashboard TV (v27)</title>
+  <title>Conta Junto — Dashboard TV (v28)</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -177,6 +177,70 @@
     .diag p{margin:0;}
     .diag code{display:block; margin-top:calc(var(--u)*.4); font-family:monospace; background:rgba(0,0,0,.05); padding:calc(var(--u)*.4); border-radius:4px;}
 
+    /* =========== TELAS (operacional / CSAT), alternadas a cada 2 min =========== */
+    main{position:relative;}
+    .tela{position:absolute; inset:0; transition:opacity .8s ease, visibility .8s;}
+    .tela.oculta{opacity:0; visibility:hidden;}
+    .telaDots{display:flex; gap:calc(var(--u)*.35); align-items:center;}
+    .telaDots span{width:calc(var(--u)*.55); height:calc(var(--u)*.55); border-radius:50%; background:#cbd5e1; transition:background .4s;}
+    .telaDots span.on{background:var(--blue);}
+    .telaDots.sem-csat{display:none;}
+
+    .csatGrid{
+      height:100%; min-height:0;
+      display:grid; gap:calc(var(--u)*.8);
+      grid-template-columns:1fr 1.5fr;
+      grid-template-rows:auto 1fr;
+    }
+    .panel{
+      background:var(--card-bg); border:2px solid var(--stroke); border-radius:calc(var(--u)*.9);
+      box-shadow:var(--shadow); padding:calc(var(--u)*.9) calc(var(--u)*1.1);
+      display:flex; flex-direction:column; min-height:0; overflow:hidden;
+    }
+    .panelTitle{
+      font-size:calc(var(--f)*1.25); font-weight:800; text-transform:uppercase; letter-spacing:.01em; color:#334155;
+      display:flex; justify-content:space-between; align-items:baseline; gap:calc(var(--u)*.6);
+      margin-bottom:calc(var(--u)*.7);
+    }
+    .panelTitle small{font-size:calc(var(--f)*.8); font-weight:700; color:var(--muted); text-transform:none; letter-spacing:0;}
+
+    .kpiRow{grid-column:1/-1; display:grid; grid-template-columns:repeat(4,1fr); gap:calc(var(--u)*.8);}
+    .kpi{padding:calc(var(--u)*.8) calc(var(--u)*1.1);}
+    .kpiLabel{font-size:calc(var(--f)*.95); font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.04em;}
+    .kpiVal{font-size:calc(var(--f)*3.6); font-weight:900; letter-spacing:-.03em; line-height:1.05; margin-top:calc(var(--u)*.2);}
+    .kpiVal small{font-size:.45em; font-weight:800; color:var(--muted); letter-spacing:0; margin-left:.15em;}
+    .kpiDelta{font-size:calc(var(--f)*.95); font-weight:700; color:var(--muted); margin-top:calc(var(--u)*.25); white-space:nowrap;}
+    .kpiDelta b{font-weight:800;}
+    .kpiDelta .up{color:var(--green);} .kpiDelta .down{color:var(--red);}
+
+    .avisoMes{
+      grid-column:1/-1; display:none;
+      font-size:calc(var(--f)*1); font-weight:700; color:#92400e;
+      background:#fffbeb; border:1px solid #fcd34d; border-radius:calc(var(--u)*.5);
+      padding:calc(var(--u)*.4) calc(var(--u)*.9);
+    }
+    .csatGrid.vazio{grid-template-rows:auto auto 1fr;}
+    .csatGrid.vazio .avisoMes{display:block;}
+
+    .distRows{flex:1; display:flex; flex-direction:column; justify-content:space-around; min-height:0;}
+    .distRow{display:grid; grid-template-columns:calc(var(--f)*3.2) 1fr calc(var(--f)*6.2); align-items:center; gap:calc(var(--u)*.6);}
+    .distNota{font-size:calc(var(--f)*1.5); font-weight:900; color:#334155; white-space:nowrap;}
+    .distNota i{font-style:normal; color:#f59e0b; font-size:.8em; margin-left:.1em;}
+    .distTrack{height:calc(var(--u)*1.5); background:#f1f5f9; border-radius:4px; overflow:hidden;}
+    .distBar{height:100%; width:0; border-radius:0 4px 4px 0; transition:width .8s ease;}
+    .distVal{font-size:calc(var(--f)*1.3); font-weight:800; color:var(--text); text-align:right; white-space:nowrap;}
+    .distVal small{font-size:.75em; font-weight:700; color:var(--muted); margin-left:.25em;}
+
+    .comments{flex:1; display:flex; flex-direction:column; gap:calc(var(--u)*.6); min-height:0; overflow:hidden;}
+    .comment{border-left:4px solid var(--teal); background:#f8fafc; border-radius:0 calc(var(--u)*.5) calc(var(--u)*.5) 0; padding:calc(var(--u)*.55) calc(var(--u)*.8);}
+    .commentHead{display:flex; justify-content:space-between; font-size:calc(var(--f)*.85); font-weight:700; color:var(--muted);}
+    .commentHead .st{color:#f59e0b; letter-spacing:.05em;}
+    .commentText{
+      font-size:calc(var(--f)*1.2); font-weight:600; color:var(--text); line-height:1.3; margin-top:calc(var(--u)*.2);
+      display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+    }
+    .vazioMsg{flex:1; display:flex; align-items:center; justify-content:center; text-align:center; color:var(--muted); font-weight:700; font-size:calc(var(--f)*1.1);}
+
     /* Telas em pé (celular, monitor vertical): cards em coluna com altura fixa */
     @media (max-aspect-ratio: 1/1){
       :root{ --u: 2.2vw; --f: calc(var(--u)*.88); }
@@ -184,6 +248,11 @@
       .wrap{height:auto; grid-template-rows:auto auto auto;}
       header{padding:calc(var(--u)*.8) calc(var(--u)*1.2);}
       .deptGrid{grid-template-columns:1fr; grid-template-rows:none; grid-auto-rows:calc(var(--u)*30);}
+      .tela{position:static;}
+      .tela.oculta{display:none;}
+      .csatGrid, .csatGrid.vazio{grid-template-columns:1fr; grid-template-rows:none;}
+      .kpiRow{grid-template-columns:repeat(2,1fr);}
+      .panel:not(.kpi){min-height:calc(var(--u)*24);}
     }
   </style>
 </head>
@@ -193,22 +262,45 @@
       <div class="brand">
         <div class="logo" aria-hidden="true"></div>
         <div>
-          <h1>Conta Junto · Painel Operacional</h1>
+          <h1 id="titulo">Conta Junto · Painel Operacional</h1>
           <div class="sub" id="subtitulo">Status das entregas por departamento</div>
         </div>
       </div>
       <div class="rightHeader">
+        <div class="pill telaDots sem-csat" id="telaDots" aria-hidden="true"><span class="on"></span><span></span></div>
         <div class="pill">🕒 <span id="clock">--:--:--</span></div>
         <div class="pill"><span class="dot" id="loadDot"></span><span id="loadLabel">Carregando...</span></div>
       </div>
     </header>
 
     <main>
-      <div class="deptGrid" id="deptGrid"></div>
+      <section class="tela" id="telaOperacional">
+        <div class="deptGrid" id="deptGrid"></div>
+      </section>
+
+      <section class="tela oculta" id="telaCsat">
+        <div class="csatGrid" id="csatGrid">
+          <div class="kpiRow">
+            <div class="panel kpi"><div class="kpiLabel">Clientes satisfeitos</div><div class="kpiVal" data-kpi="sat">—</div><div class="kpiDelta" data-delta="sat">—</div></div>
+            <div class="panel kpi"><div class="kpiLabel">Nota média</div><div class="kpiVal" data-kpi="media">—</div><div class="kpiDelta" data-delta="media">—</div></div>
+            <div class="panel kpi"><div class="kpiLabel">Avaliações recebidas</div><div class="kpiVal" data-kpi="resp">—</div><div class="kpiDelta" data-delta="resp">—</div></div>
+            <div class="panel kpi"><div class="kpiLabel">Taxa de resposta</div><div class="kpiVal" data-kpi="taxa">—</div><div class="kpiDelta" data-delta="taxa">—</div></div>
+          </div>
+          <div class="avisoMes" id="avisoMes"></div>
+          <div class="panel">
+            <div class="panelTitle">Distribuição das notas <small id="distInfo"></small></div>
+            <div class="distRows" id="distRows"></div>
+          </div>
+          <div class="panel">
+            <div class="panelTitle">O que os clientes disseram <small>últimos comentários</small></div>
+            <div class="comments" id="comments"></div>
+          </div>
+        </div>
+      </section>
     </main>
 
     <footer>
-      <div>Fonte: Acessórias • <span id="sourceInfo">—</span></div>
+      <div>Fonte: <span id="sourceName">Acessórias</span> • <span id="sourceInfo">—</span></div>
       <div>Atualizado em <span id="updatedAt">—</span></div>
     </footer>
   </div>
@@ -225,9 +317,15 @@
 ============================================= */
 // dados.json é gerado do Acessórias pelo sincronizar.py (GitHub Actions, a cada 10 min).
 const DADOS_URL = "dados.json";
+// csat.json é gerado do Bradial (WhatsApp) pelo csat.py, na mesma rotina.
+const CSAT_URL = "csat.json";
 const REFRESH_MS = 60 * 1000;
 // Sem atualização há mais que isso, o painel avisa que a rotina do GitHub parou.
 const DESATUALIZADO_MS = 45 * 60 * 1000;
+// Troca entre o Painel Operacional e o CSAT. Para testar: ?tela=csat fixa uma tela, ?rotacao=10 (segundos).
+const PARAMS = new URLSearchParams(location.search);
+const TELA_FIXA = PARAMS.get("tela");
+const ROTACAO_MS = (Number(PARAMS.get("rotacao")) || 120) * 1000;
 
 /* =============================================
    UTILITÁRIOS
@@ -394,18 +492,135 @@ function mesLabel(ym){
 }
 
 /* =============================================
+   CSAT (csat.json, Bradial)
+============================================= */
+const MESES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+function mesCurto(ym){
+  const m=String(ym||"").match(/^(\d{4})-(\d{2})/);
+  return m?`${MESES[Number(m[2])-1]}/${m[1].slice(2)}`:"—";
+}
+const estrelas=(n)=>"★".repeat(Math.max(0,Math.min(5,n||0)));
+const num=(v,casas=0)=>v===null||v===undefined?"—":Number(v).toLocaleString("pt-BR",{minimumFractionDigits:casas,maximumFractionDigits:casas});
+// Notas 1–2 vermelho, 3 cinza (neutro), 4–5 verde.
+const COR_NOTA={1:"#dc2626",2:"#f87171",3:"#94a3b8",4:"#4ade80",5:"#16a34a"};
+
+async function loadCsat(){
+  const res=await fetch(`${CSAT_URL}?t=${Date.now()}`,{cache:"no-store"});
+  if(!res.ok) throw new Error(`csat.json: HTTP ${res.status}`);
+  return await res.json();
+}
+
+// Variação contra o mês anterior. "unid" = sufixo; maiorMelhor define a cor da seta.
+function delta(atual,anterior,{casas=0,unid="",escala=1,rotulo}){
+  if(atual===null||atual===undefined||anterior===null||anterior===undefined) return `${rotulo}: —`;
+  const d=(atual-anterior)*escala;
+  const passo=Math.pow(10,-casas)/2;
+  if(Math.abs(d)<passo) return `<b>=</b> igual a ${rotulo}`;
+  const cls=d>0?"up":"down", seta=d>0?"▲":"▼";
+  return `<b class="${cls}">${seta} ${num(Math.abs(d),casas)}${unid}</b> vs ${rotulo}`;
+}
+
+function renderCsat(c){
+  const atual=c.atual||{}, ant=c.anterior||{};
+  const rotAnt=mesCurto(ant.periodo?.[0]);
+  const vazio=!atual.respostas;
+  // Começo de mês sem avaliações: os blocos mostram o mês anterior, com aviso.
+  const base=vazio?ant:atual;
+  el("csatGrid").classList.toggle("vazio",vazio);
+  el("avisoMes").textContent=vazio?`Sem avaliações em ${mesCurto(c.mes)} até agora · exibindo ${rotAnt}`:"";
+
+  const kpi=(k,html)=>{ document.querySelector(`[data-kpi="${k}"]`).innerHTML=html; };
+  const dl=(k,html)=>{ document.querySelector(`[data-delta="${k}"]`).innerHTML=html; };
+  kpi("sat", base.satisfeitos_pct===null||base.satisfeitos_pct===undefined?"—":`${num(base.satisfeitos_pct)}<small>%</small>`);
+  kpi("media", base.media===null||base.media===undefined?"—":`${num(base.media,2)}<small>de 5</small>`);
+  kpi("resp", num(base.respostas||0));
+  kpi("taxa", base.taxa_resposta===null||base.taxa_resposta===undefined?"—":`${num(base.taxa_resposta*100,1)}<small>%</small>`);
+  if(vazio){
+    for(const k of ["sat","media","resp","taxa"]) dl(k,`${rotAnt} completo`);
+  }else{
+    dl("sat", delta(atual.satisfeitos_pct,ant.satisfeitos_pct,{unid:" p.p.",rotulo:rotAnt}));
+    dl("media", delta(atual.media,ant.media,{casas:2,rotulo:rotAnt}));
+    // Mês em andamento contra mês fechado: quantidade sem seta, só a referência.
+    dl("resp", `${rotAnt}: <b>${num(ant.respostas||0)}</b> no mês todo`);
+    dl("taxa", delta(atual.taxa_resposta,ant.taxa_resposta,{casas:1,unid:" p.p.",escala:100,rotulo:rotAnt}));
+  }
+
+  const dist=base.distribuicao||{}, total=base.respostas||0;
+  const maior=Math.max(1,...[1,2,3,4,5].map(n=>dist[n]||0));
+  el("distInfo").textContent=`${num(total)} avaliações`;
+  el("distRows").innerHTML=[5,4,3,2,1].map(n=>{
+    const q=dist[n]||0, p=total?Math.round(q*100/total):0;
+    return `<div class="distRow">
+      <span class="distNota">${n}<i>★</i></span>
+      <div class="distTrack"><div class="distBar" style="width:${q/maior*100}%;background:${COR_NOTA[n]}"></div></div>
+      <span class="distVal">${num(q)}<small>${p}%</small></span>
+    </div>`;
+  }).join("");
+
+  const coms=(atual.comentarios||[]).slice(0,5);
+  el("comments").innerHTML=coms.length?coms.map(x=>`<div class="comment">
+      <div class="commentHead"><span class="st">${estrelas(x.nota)}</span><span>${brDate(parseDate(x.data))}</span></div>
+      <div class="commentText">“${escapeHtml(x.texto)}”</div>
+    </div>`).join(""):`<div class="vazioMsg">Nenhum comentário em ${mesCurto(c.mes)} até agora</div>`;
+}
+
+/* =============================================
+   TELAS
+============================================= */
+let telaAtual="operacional", csatOk=false;
+const cabecalho={
+  operacional:{titulo:"Conta Junto · Painel Operacional", sub:"Status das entregas por departamento", fonte:"Acessórias", info:"—", em:"—"},
+  csat:{titulo:"Conta Junto · Satisfação do Cliente", sub:"Pesquisa de satisfação (CSAT) do atendimento pelo WhatsApp", fonte:"Bradial (WhatsApp)", info:"—", em:"—"},
+};
+
+function mostrarTela(t){
+  if(t==="csat"&&!csatOk) t="operacional";
+  telaAtual=t;
+  el("telaOperacional").classList.toggle("oculta",t!=="operacional");
+  el("telaCsat").classList.toggle("oculta",t!=="csat");
+  const dots=el("telaDots").children;
+  dots[0].classList.toggle("on",t==="operacional");
+  dots[1].classList.toggle("on",t==="csat");
+  const h=cabecalho[t];
+  el("titulo").textContent=h.titulo;
+  el("subtitulo").textContent=h.sub;
+  el("sourceName").textContent=h.fonte;
+  el("sourceInfo").textContent=h.info;
+  el("updatedAt").textContent=h.em;
+}
+
+function rodarTela(){
+  if(TELA_FIXA) return;
+  mostrarTela(telaAtual==="operacional"?"csat":"operacional");
+}
+
+/* =============================================
    LOOP PRINCIPAL
 ============================================= */
 async function loadAll(){
   setState("warn","Carregando...");
+  // O CSAT é opcional: se faltar ou falhar, a TV fica só no Painel Operacional.
+  const csat=loadCsat().then(c=>{
+    renderCsat(c);
+    const em=new Date(c.atualizado_em);
+    Object.assign(cabecalho.csat,{
+      sub:`Pesquisa de satisfação (CSAT) do atendimento pelo WhatsApp · ${mesLabel(c.mes)}`,
+      info:`Avaliações de ${mesLabel(c.mes)}, comparadas com o mês anterior`,
+      em:`${brDate(em)}, ${brTime(em)}`,
+    });
+    csatOk=true;
+  }).catch(()=>{ csatOk=false; });
+
   try{
     const tasks=await loadAcessorias();
     const metrics=computeTaskMetrics(Object.values(tasks.entregas||{}));
     renderDepartments(metrics);
     const sinc=new Date(tasks.atualizado_em);
-    el("updatedAt").textContent=`${brDate(sinc)}, ${brTime(sinc)}`;
-    el("sourceInfo").textContent=`Entregas com prazo em ${mesLabel(tasks.mes)}`;
-    el("subtitulo").textContent=`Status das entregas por departamento · prazo em ${mesLabel(tasks.mes)}`;
+    Object.assign(cabecalho.operacional,{
+      sub:`Status das entregas por departamento · prazo em ${mesLabel(tasks.mes)}`,
+      info:`Entregas com prazo em ${mesLabel(tasks.mes)}`,
+      em:`${brDate(sinc)}, ${brTime(sinc)}`,
+    });
     if(Date.now()-sinc.getTime() > DESATUALIZADO_MS) setState("warn","Dados desatualizados");
     else setState("ok","Atualizado");
     showDiag(false);
@@ -413,6 +628,10 @@ async function loadAll(){
     setState("bad","Erro");
     showDiag(true,err.msg||String(err),err.url||DADOS_URL);
   }
+
+  await csat;
+  el("telaDots").classList.toggle("sem-csat",!csatOk);
+  mostrarTela(TELA_FIXA==="csat"?"csat":telaAtual);
 }
 
 /* =============================================
@@ -422,6 +641,7 @@ function tickClock(){ el("clock").textContent=new Date().toLocaleTimeString("pt-
 setInterval(tickClock,1000); tickClock();
 loadAll();
 setInterval(loadAll,REFRESH_MS);
+setInterval(rodarTela,ROTACAO_MS);
 </script>
 </body>
 </html>

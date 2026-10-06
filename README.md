@@ -1,26 +1,38 @@
 # Painel TV — Conta Junto
 
-Painel operacional com as entregas (obrigações e tarefas) do mês por departamento, vindas do Acessórias.
+Painel para a TV com duas telas que se alternam a cada 2 minutos:
 
-- `index.html`: o painel. Lê o `dados.json` a cada minuto.
+1. **Painel Operacional**: entregas (obrigações e tarefas) do mês por departamento, vindas do Acessórias.
+2. **Satisfação do Cliente**: pesquisa de satisfação (CSAT) do atendimento pelo WhatsApp, vinda do Bradial.
+   Mês atual comparado com o anterior. Se não houver dados do Bradial, a TV fica só na primeira tela.
+
+- `index.html`: o painel. Lê o `dados.json` e o `csat.json` a cada minuto.
 - `sincronizar.py`: busca as entregas na API do Acessórias e gera o `dados.json`.
-- `.github/workflows/painel.yml`: roda o sincronizador a cada 10 min e publica no GitHub Pages.
+- `csat.py`: busca as avaliações na API do Bradial e gera o `csat.json`.
+- `.github/workflows/painel.yml`: roda os dois a cada 10 min e publica no GitHub Pages.
 - `.github/workflows/manter-ativo.yml`: commit vazio mensal para o GitHub não desligar a rotina.
 
-O `dados.json` publicado só tem departamento, prazo e situação de cada entrega.
+O `dados.json` publicado só tem departamento, prazo e situação de cada entrega. O `csat.json` só tem
+números, notas, comentários e data: nenhum nome de colaborador (nomes da equipe citados no comentário
+viram "[atendente]") e nunca o nome ou o telefone do cliente.
 
 ## Configuração
 
-1. **Settings → Secrets and variables → Actions → New repository secret**: nome `ACESSORIAS_TOKEN`, valor = token da API do Acessórias.
+1. **Settings → Secrets and variables → Actions → New repository secret**:
+   - `ACESSORIAS_TOKEN` = token da API do Acessórias;
+   - `BRADIAL_API_KEY` = chave da API do Bradial.
 2. **Settings → Pages → Build and deployment → Source**: `GitHub Actions`.
 3. **Actions → Atualizar painel → Run workflow** (marque "Forçar busca completa" na primeira vez). Leva ~7 min.
 
 Link do painel: `https://<usuario>.github.io/<repositorio>/`
 
+Para testar as telas: `?tela=csat` fixa a tela de CSAT; `?rotacao=10` troca a cada 10 segundos.
+
 ## Rodar localmente
 
 ```
 python sincronizar.py
+python csat.py
 python -m http.server 8770
 ```
 
