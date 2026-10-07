@@ -83,4 +83,10 @@ jobs:
         run: |
           restante=$(( 600 - ($(date +%s) - INICIO) ))
           if [ "$restante" -gt 0 ]; then sleep "$restante"; fi
-          gh workflow run painel.yml --repo "$GITHUB_REPOSITORY" --ref main
+          # O GitHub às vezes devolve erro 500 aqui; sem nova tentativa a corrente para.
+          for tentativa in 1 2 3 4 5; do
+            gh workflow run painel.yml --repo "$GITHUB_REPOSITORY" --ref main && exit 0
+            echo "Falhou ao agendar (tentativa $tentativa de 5); nova tentativa em 30 s."
+            sleep 30
+          done
+          exit 1
