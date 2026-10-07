@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>Conta Junto — Dashboard TV (v30)</title>
+  <title>Conta Junto — Dashboard TV (v31)</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -204,7 +204,8 @@
     }
     .csat.vazio .avisoMes{display:block;}
 
-    .placar{display:flex; gap:calc(var(--u)*.8);}
+    /* 4 números na primeira linha; notas recebidas ocupam a linha de baixo inteira, em destaque */
+    .placar{display:grid; grid-template-columns:repeat(4,1fr); gap:calc(var(--u)*.8);}
     .kpi{
       flex:1; min-width:0; display:flex; align-items:center; gap:calc(var(--u)*.9);
       background:#fff; border:1px solid rgba(60,61,61,.1); border-radius:calc(var(--u)*1);
@@ -229,15 +230,16 @@
     .anel .fundo{stroke:rgba(60,61,61,.1);}
     .anel .valor{stroke:var(--azul-claro); stroke-linecap:round; transition:stroke-dashoffset 1.6s cubic-bezier(.22,1,.36,1);}
 
-    .kpi.notas{flex:1.9;}
+    .kpi.notas{grid-column:1/-1; padding:calc(var(--u)*.8) calc(var(--u)*1.6);}
     .kpi.notas > div{flex:1;}
-    .dist{display:flex; gap:calc(var(--u)*1); margin-top:calc(var(--u)*.35);}
-    .notaCol{flex:1; font-size:var(--f);}
+    .dist{display:flex; gap:calc(var(--u)*2.6); margin-top:calc(var(--u)*.4);}
+    .notaCol{flex:1; font-size:calc(var(--f)*1.7);}
     .notaCol .rotulo{display:flex; justify-content:space-between; align-items:baseline; font-weight:800;}
     .notaCol .rotulo span{display:flex; align-items:center; gap:.15em; font-size:1.2em;}
     .notaCol .rotulo svg{width:.85em; height:.85em; fill:var(--estrela);}
-    .notaCol .rotulo em{font-style:normal; font-weight:700; color:var(--suave);}
-    .notaCol .qtd{font-size:.85em; font-weight:700; color:var(--suave); margin-top:calc(var(--u)*.2);}
+    .notaCol .rotulo em{font-style:normal; font-size:1.2em; font-weight:900; color:var(--grafite);}
+    .notaCol .qtd{font-size:.68em; font-weight:700; color:var(--suave); margin-top:calc(var(--u)*.3);}
+    .notaCol .trilho{height:calc(var(--u)*.9); margin-top:calc(var(--u)*.4);}
     .trilho{height:calc(var(--u)*.5); margin-top:calc(var(--u)*.3); background:rgba(60,61,61,.1); border-radius:99em; overflow:hidden;}
     .trilho i{display:block; height:100%; width:0; background:var(--estrela); border-radius:inherit; transition:width 1.4s cubic-bezier(.22,1,.36,1);}
     .trilho i.baixa{background:var(--red);}
@@ -352,9 +354,9 @@
       .tela{position:static;}
       .tela.oculta{display:none;}
       .csat, .csat.vazio{grid-template-rows:none;}
-      .placar{flex-wrap:wrap;}
-      .kpi{flex:1 1 40%;}
-      .kpi.notas{flex-basis:100%;}
+      .placar{grid-template-columns:repeat(2,1fr);}
+      .dist{gap:calc(var(--u)*1.2);}
+      .notaCol{font-size:calc(var(--f)*1.2);}
       .palcoCsat{grid-template-columns:1fr; grid-template-rows:none;}
       .cena, .rodapeCena, .setores{grid-column:1; grid-row:auto;}
       .cena{grid-template-columns:1fr; min-height:calc(var(--u)*40);}
