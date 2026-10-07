@@ -6,6 +6,9 @@ Painel para a TV com duas telas que se alternam a cada 2 minutos:
 2. **Satisfação do Cliente**: avaliações dos clientes (notas de 1 a 5) somadas de dois canais: a pesquisa
    do WhatsApp (Bradial) e a nota dada ao finalizar uma solicitação no Acessórias. Mês atual comparado com o
    anterior. Se um canal falhar, a tela segue com o outro; sem nenhum, a TV fica só na primeira tela.
+   No topo, os números do mês (nota média, avaliações, satisfeitos, taxa de resposta, notas de 1 a 5);
+   no centro, os comentários passando um a um (9 s cada), com o setor que atendeu; à direita, o quadro
+   por setor (nota média e avaliações ÷ atendimentos encerrados) e o alerta de notas de 1 a 3.
 
 - `index.html`: o painel. Lê o `dados.json` e o `csat.json` a cada minuto.
 - `sincronizar.py`: busca as entregas na API do Acessórias e gera o `dados.json`.

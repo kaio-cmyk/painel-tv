@@ -30,10 +30,13 @@ from pathlib import Path
 sys.stdout.reconfigure(encoding="utf-8")
 
 RAIZ = Path(__file__).resolve().parent.parent
-VERSAO = 3
-MAX_COMENTARIOS = 6
+VERSAO = 4
+# A TV passa os comentários um a um (~9 s cada) durante os 2 min da tela.
+MAX_COMENTARIOS = 10
 MAX_TEXTO = 160
 
+# O WhatsApp (Bradial) é atendido só pelo Sucesso do Cliente.
+SETOR_WHATSAPP = "Sucesso do Cliente"
 BRADIAL = "https://api.bradial.com.br"
 CSAT = "chat/v1/reports/csat"
 ACESSORIAS = "https://api.acessorias.com"
@@ -122,7 +125,7 @@ def bradial(ini, fim):
         except (KeyError, AttributeError, ValueError):
             quando = datetime.combine(ini, datetime.min.time())
         avaliacoes.append({"nota": int(r["rating"]), "texto": texto_limpo(r.get("feedbackMessage")),
-                           "quando": quando, "canal": "WhatsApp"})
+                           "quando": quando, "canal": "WhatsApp", "setor": SETOR_WHATSAPP})
 
     enviadas = None
     try:
@@ -146,7 +149,7 @@ def data_br(s):
 
 def acessorias(ini, fim):
     """Avaliações de solicitações externas do Acessórias de ini até fim, uma lista por avaliação,
-    e as solicitações externas finalizadas (com a data) para calcular a taxa de resposta."""
+    e as solicitações externas finalizadas (data e setor) para calcular a taxa de resposta."""
     headers = {"Authorization": f"Bearer {token_acessorias()}"}
 
     def get(caminho, **query):
@@ -165,7 +168,8 @@ def acessorias(ini, fim):
     # A avaliação muda a data de última atualização, então quem avaliou no período está nesta lista.
     sols = [s for s in listar("requests/ListAll", SolUltAtIni=ini.isoformat(), SolUltAtFim=fim.isoformat())
             if s.get("SolTipo") == "Externa"]
-    finalizadas = [d for d in (data_br(s.get("SolDHFinalizacao")) for s in sols) if d]
+    finalizadas = [(d, s.get("DptoNome") or "Sem setor")
+                   for s in sols if (d := data_br(s.get("SolDHFinalizacao")))]
 
     # Nota dada por alguém do escritório não é avaliação de cliente.
     equipe = {(u.get("nome") or "").split()[0].lower() for u in listar("users/ListAll") if u.get("nome")}
@@ -190,7 +194,7 @@ def acessorias(ini, fim):
             comentario = re.sub(r"^[\s'\"]*(Coment[aá]rio:)?\s*", "", m.group(2))
             avaliacoes.append({"nota": int(m.group(1)), "texto": texto_limpo(comentario),
                                "quando": data_br(c.get("CmtDH")) or data_br(s.get("SolDHUAt")),
-                               "canal": "Acessórias"})
+                               "canal": "Acessórias", "setor": det.get("DptoNome") or s.get("DptoNome") or "Sem setor"})
     return avaliacoes, finalizadas
 
 
@@ -200,29 +204,45 @@ def pct(parte, total):
     return round(parte * 100 / total) if total else None
 
 
-def resumo(ini, fim, por_canal, enviadas, com_comentarios):
-    """por_canal = {canal: [avaliações]}; enviadas = {canal: pesquisas enviadas ou None}."""
-    todas = [a for lista in por_canal.values() for a in lista]
-    notas = [a["nota"] for a in todas]
-    # Taxa só com os canais que têm o total de pesquisas enviadas.
-    com_total = [c for c in por_canal if enviadas.get(c)]
-    resp = sum(len(por_canal[c]) for c in com_total)
-    env = sum(enviadas[c] for c in com_total)
+def media(notas):
+    return round(sum(notas) / len(notas), 2) if notas else None
+
+
+def resumo(ini, fim, avals, oport, com_comentarios):
+    """avals = avaliações do mês (todos os canais); oport = {setor: oportunidades de avaliar}
+    (pesquisas enviadas no WhatsApp, solicitações externas finalizadas no Acessórias)."""
+    notas = [a["nota"] for a in avals]
+    # Taxa só com os setores que têm o total de oportunidades.
+    resp_taxa = sum(1 for a in avals if oport.get(a["setor"]))
+    total_oport = sum(oport.values())
+    canais, setores = {}, {}
+    for a in avals:
+        canais.setdefault(a["canal"], []).append(a["nota"])
+        setores.setdefault(a["setor"], {"canal": a["canal"], "notas": []})["notas"].append(a["nota"])
+    for setor in oport:
+        setores.setdefault(setor, {"canal": "WhatsApp" if setor == SETOR_WHATSAPP else "Acessórias", "notas": []})
     out = {
         "periodo": [ini.isoformat(), fim.isoformat()],
         "respostas": len(notas),
+        "satisfeitos": sum(n >= 4 for n in notas),
         "satisfeitos_pct": pct(sum(n >= 4 for n in notas), len(notas)),
-        "media": round(sum(notas) / len(notas), 2) if notas else None,
-        "taxa_resposta": round(resp / env, 4) if env else None,
+        "media": media(notas),
+        "oportunidades": total_oport or None,
+        "taxa_resposta": round(resp_taxa / total_oport, 4) if total_oport else None,
         "distribuicao": {str(i): notas.count(i) for i in range(1, 6)},
-        "por_canal": {c: {"respostas": len(l),
-                          "media": round(sum(a["nota"] for a in l) / len(l), 2) if l else None}
-                      for c, l in por_canal.items()},
+        "por_canal": {c: {"respostas": len(l), "media": media(l)} for c, l in canais.items()},
+        "por_setor": sorted(
+            ({"setor": st, "canal": v["canal"], "respostas": len(v["notas"]), "media": media(v["notas"]),
+              "satisfeitos_pct": pct(sum(n >= 4 for n in v["notas"]), len(v["notas"])),
+              "oportunidades": oport.get(st) or None,
+              "taxa_resposta": round(len(v["notas"]) / oport[st], 4) if oport.get(st) else None}
+             for st, v in setores.items()),
+            key=lambda x: (-x["respostas"], -(x["oportunidades"] or 0), x["setor"])),
     }
     if com_comentarios:
-        com_texto = sorted((a for a in todas if a["texto"]), key=lambda a: a["quando"], reverse=True)
+        com_texto = sorted((a for a in avals if a["texto"]), key=lambda a: a["quando"], reverse=True)
         out["comentarios"] = [{"nota": a["nota"], "texto": a["texto"], "data": a["quando"].date().isoformat(),
-                               "canal": a["canal"]} for a in com_texto[:MAX_COMENTARIOS]]
+                               "canal": a["canal"], "setor": a["setor"]} for a in com_texto[:MAX_COMENTARIOS]]
     return out
 
 
@@ -239,26 +259,33 @@ def main():
     meses = {"atual": (ini_atual, hoje), "anterior": (ini_anterior, fim_anterior)}
     no_mes = lambda d, mes: d is not None and meses[mes][0] <= d.date() <= meses[mes][1]
 
-    por_canal = {m: {} for m in meses}
-    enviadas = {m: {} for m in meses}
+    avals = {m: [] for m in meses}
+    oport = {m: {} for m in meses}
+    canais = []
 
     try:
         for m, (ini, fim) in meses.items():
-            por_canal[m]["WhatsApp"], enviadas[m]["WhatsApp"] = bradial(ini, fim)
+            lista, enviadas = bradial(ini, fim)
+            avals[m] += lista
+            if enviadas:
+                oport[m][SETOR_WHATSAPP] = enviadas
+        canais.append("WhatsApp")
     except (RuntimeError, urllib.error.HTTPError) as e:
         log(f"Bradial fora deste arquivo: {e}")
-        for m in meses:
-            por_canal[m].pop("WhatsApp", None)
+        avals = {m: [] for m in meses}
+        oport = {m: {} for m in meses}
 
     try:
-        avs, finalizadas = acessorias(ini_anterior, hoje)
+        lista, finalizadas = acessorias(ini_anterior, hoje)
         for m in meses:
-            por_canal[m]["Acessórias"] = [x for x in avs if no_mes(x["quando"], m)]
-            enviadas[m]["Acessórias"] = sum(no_mes(d, m) for d in finalizadas)
+            avals[m] += [x for x in lista if no_mes(x["quando"], m)]
+            for d, setor in finalizadas:
+                if no_mes(d, m):
+                    oport[m][setor] = oport[m].get(setor, 0) + 1
+        canais.append("Acessórias")
     except (RuntimeError, urllib.error.HTTPError) as e:
         log(f"Acessórias fora deste arquivo: {e}")
 
-    canais = list(por_canal["atual"])
     if not canais:
         sys.exit("Nenhum canal respondeu; csat.json não gerado.")
 
@@ -268,15 +295,15 @@ def main():
         "versao": VERSAO,
         "mes": ini_atual.strftime("%Y-%m"),
         "atualizado_em": agora.isoformat(),
-        "atual": resumo(ini_atual, hoje, por_canal["atual"], enviadas["atual"], True),
-        "anterior": resumo(ini_anterior, fim_anterior, por_canal["anterior"], enviadas["anterior"], False),
+        "atual": resumo(ini_atual, hoje, avals["atual"], oport["atual"], True),
+        "anterior": resumo(ini_anterior, fim_anterior, avals["anterior"], oport["anterior"], False),
     }
     Path(a.saida).write_text(json.dumps(dados, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     for m in meses:
         r = dados[m]
-        canal = ", ".join(f"{c} {v['respostas']}" for c, v in r["por_canal"].items())
-        log(f"{a.saida}: {m} {meses[m][0]:%m/%Y} = {r['respostas']} avaliações ({canal}), "
-            f"média {r['media']}, taxa {r['taxa_resposta']}.")
+        canal = ", ".join(f"{k} {v['respostas']}" for k, v in r["por_canal"].items())
+        log(f"{a.saida}: {m} {meses[m][0]:%m/%Y} = {r['respostas']} avaliações ({canal}), média {r['media']}, "
+            f"taxa {r['taxa_resposta']} ({r['oportunidades']} atendimentos encerrados).")
 
 
 if __name__ == "__main__":
