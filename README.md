@@ -3,18 +3,20 @@
 Painel para a TV com duas telas que se alternam a cada 2 minutos:
 
 1. **Painel Operacional**: entregas (obrigações e tarefas) do mês por departamento, vindas do Acessórias.
-2. **Satisfação do Cliente**: pesquisa de satisfação (CSAT) do atendimento pelo WhatsApp, vinda do Bradial.
-   Mês atual comparado com o anterior. Se não houver dados do Bradial, a TV fica só na primeira tela.
+2. **Satisfação do Cliente**: avaliações dos clientes (notas de 1 a 5) somadas de dois canais: a pesquisa
+   do WhatsApp (Bradial) e a nota dada ao finalizar uma solicitação no Acessórias. Mês atual comparado com o
+   anterior. Se um canal falhar, a tela segue com o outro; sem nenhum, a TV fica só na primeira tela.
 
 - `index.html`: o painel. Lê o `dados.json` e o `csat.json` a cada minuto.
 - `sincronizar.py`: busca as entregas na API do Acessórias e gera o `dados.json`.
-- `csat.py`: busca as avaliações na API do Bradial e gera o `csat.json`.
+- `csat.py`: busca as avaliações no Bradial e no Acessórias e gera o `csat.json`.
 - `.github/workflows/painel.yml`: roda os dois a cada 10 min e publica no GitHub Pages.
 - `.github/workflows/manter-ativo.yml`: commit vazio mensal para o GitHub não desligar a rotina.
 
 O `dados.json` publicado só tem departamento, prazo e situação de cada entrega. O `csat.json` só tem
-números, notas, comentários e data: nenhum nome de colaborador (nomes da equipe citados no comentário
-viram "[atendente]") e nunca o nome ou o telefone do cliente.
+números, notas, comentários (como o cliente escreveu, inclusive o nome do colaborador que ele citou),
+data e canal: sem ranking por colaborador e nunca o nome, o telefone ou a empresa do cliente.
+Taxa de resposta = avaliações ÷ (pesquisas enviadas no WhatsApp + solicitações externas finalizadas).
 
 ## Configuração
 

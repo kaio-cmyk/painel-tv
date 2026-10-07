@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>Conta Junto — Dashboard TV (v28)</title>
+  <title>Conta Junto — Dashboard TV (v29)</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -235,6 +235,7 @@
     .comment{border-left:4px solid var(--teal); background:#f8fafc; border-radius:0 calc(var(--u)*.5) calc(var(--u)*.5) 0; padding:calc(var(--u)*.55) calc(var(--u)*.8);}
     .commentHead{display:flex; justify-content:space-between; font-size:calc(var(--f)*.85); font-weight:700; color:var(--muted);}
     .commentHead .st{color:#f59e0b; letter-spacing:.05em;}
+    .commentHead .canal{margin-left:calc(var(--u)*.5); font-size:.9em; font-weight:800; color:#475569; background:#e2e8f0; border-radius:999px; padding:0 calc(var(--u)*.45);}
     .commentText{
       font-size:calc(var(--f)*1.2); font-weight:600; color:var(--text); line-height:1.3; margin-top:calc(var(--u)*.2);
       display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
@@ -317,7 +318,7 @@
 ============================================= */
 // dados.json é gerado do Acessórias pelo sincronizar.py (GitHub Actions, a cada 10 min).
 const DADOS_URL = "dados.json";
-// csat.json é gerado do Bradial (WhatsApp) pelo csat.py, na mesma rotina.
+// csat.json junta as avaliações do Bradial (WhatsApp) e do Acessórias; gerado pelo csat.py, na mesma rotina.
 const CSAT_URL = "csat.json";
 const REFRESH_MS = 60 * 1000;
 // Sem atualização há mais que isso, o painel avisa que a rotina do GitHub parou.
@@ -492,7 +493,7 @@ function mesLabel(ym){
 }
 
 /* =============================================
-   CSAT (csat.json, Bradial)
+   CSAT (csat.json: Bradial + Acessórias)
 ============================================= */
 const MESES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
 function mesCurto(ym){
@@ -547,7 +548,9 @@ function renderCsat(c){
 
   const dist=base.distribuicao||{}, total=base.respostas||0;
   const maior=Math.max(1,...[1,2,3,4,5].map(n=>dist[n]||0));
-  el("distInfo").textContent=`${num(total)} avaliações`;
+  // Avaliações somadas dos canais (WhatsApp e Acessórias); a divisão fica no título.
+  const canais=Object.entries(base.por_canal||{}).map(([c,v])=>`${c} ${num(v.respostas||0)}`).join(" · ");
+  el("distInfo").textContent=canais?`${num(total)} avaliações · ${canais}`:`${num(total)} avaliações`;
   el("distRows").innerHTML=[5,4,3,2,1].map(n=>{
     const q=dist[n]||0, p=total?Math.round(q*100/total):0;
     return `<div class="distRow">
@@ -559,7 +562,7 @@ function renderCsat(c){
 
   const coms=(atual.comentarios||[]).slice(0,5);
   el("comments").innerHTML=coms.length?coms.map(x=>`<div class="comment">
-      <div class="commentHead"><span class="st">${estrelas(x.nota)}</span><span>${brDate(parseDate(x.data))}</span></div>
+      <div class="commentHead"><span><span class="st">${estrelas(x.nota)}</span>${x.canal?`<span class="canal">${escapeHtml(x.canal)}</span>`:""}</span><span>${brDate(parseDate(x.data))}</span></div>
       <div class="commentText">“${escapeHtml(x.texto)}”</div>
     </div>`).join(""):`<div class="vazioMsg">Nenhum comentário em ${mesCurto(c.mes)} até agora</div>`;
 }
@@ -570,7 +573,7 @@ function renderCsat(c){
 let telaAtual="operacional", csatOk=false;
 const cabecalho={
   operacional:{titulo:"Conta Junto · Painel Operacional", sub:"Status das entregas por departamento", fonte:"Acessórias", info:"—", em:"—"},
-  csat:{titulo:"Conta Junto · Satisfação do Cliente", sub:"Pesquisa de satisfação (CSAT) do atendimento pelo WhatsApp", fonte:"Bradial (WhatsApp)", info:"—", em:"—"},
+  csat:{titulo:"Conta Junto · Satisfação do Cliente", sub:"Avaliações dos clientes no WhatsApp e no Acessórias", fonte:"Bradial (WhatsApp) + Acessórias", info:"—", em:"—"},
 };
 
 function mostrarTela(t){
@@ -604,7 +607,8 @@ async function loadAll(){
     renderCsat(c);
     const em=new Date(c.atualizado_em);
     Object.assign(cabecalho.csat,{
-      sub:`Pesquisa de satisfação (CSAT) do atendimento pelo WhatsApp · ${mesLabel(c.mes)}`,
+      sub:`Avaliações dos clientes no ${(c.canais||["WhatsApp"]).join(" e no ")} · ${mesLabel(c.mes)}`,
+      fonte:c.fonte||cabecalho.csat.fonte,
       info:`Avaliações de ${mesLabel(c.mes)}, comparadas com o mês anterior`,
       em:`${brDate(em)}, ${brTime(em)}`,
     });
