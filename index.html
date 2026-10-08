@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>Conta Junto — Dashboard TV (v31)</title>
+  <title>Conta Junto — Dashboard TV (v33)</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -71,95 +71,11 @@
     .dot.warn{background:var(--amber); box-shadow:0 0 0 3px rgba(217,119,6,.18);}
 
     main{min-height:0;}
-    .deptGrid{
-      display:grid;
-      grid-template-columns:repeat(3, 1fr);
-      grid-template-rows:repeat(2, 1fr);
-      gap:calc(var(--u)*.8);
-      height:100%; min-height:0;
-    }
-
-    .deptCard{
-      background:var(--card-bg);
-      border:2px solid var(--stroke);
-      border-radius:calc(var(--u)*.9);
-      box-shadow:var(--shadow);
-      padding:calc(var(--u)*.9) calc(var(--u)*1.1) calc(var(--u)*.7);
-      display:flex; flex-direction:column;
-      position:relative; overflow:hidden; min-height:0;
-    }
-
     @keyframes bgPulse {
       0%,100% { background-color:#fff; border-color:rgba(220,38,38,.35); }
       50% { background-color:#fef2f2; border-color:rgba(220,38,38,1); }
     }
     @keyframes textFlash { 0%,100%{opacity:1} 50%{opacity:.65} }
-
-    .deptCard.alert{ animation:bgPulse 2.4s infinite ease-in-out; }
-    .deptCard.alert .deptTitle{ color:var(--red); }
-    /* Prazo técnico vencido, ainda antes da data de atraso: aviso sem piscar */
-    .deptCard.warn:not(.alert){ border-color:rgba(217,119,6,.6); }
-
-    .badge{
-      position:absolute; top:calc(var(--u)*.8); right:calc(var(--u)*.9);
-      color:#fff; font-size:calc(var(--f)*.85); font-weight:800;
-      text-transform:uppercase; letter-spacing:.04em;
-      padding:calc(var(--u)*.25) calc(var(--u)*.6); border-radius:calc(var(--u)*.3);
-      display:none; z-index:10;
-    }
-    .alertBadge{ background:var(--red); animation:textFlash 1.5s infinite; }
-    .warnBadge{ background:var(--amber); }
-    .deptCard.alert .alertBadge{ display:block; }
-    .deptCard.warn:not(.alert) .warnBadge{ display:block; }
-
-    .deptTitle{
-      font-size:calc(var(--f)*1.5); font-weight:800; line-height:1.15;
-      text-transform:uppercase; letter-spacing:.01em; color:#334155;
-      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-      padding-right:calc(var(--u)*9);
-    }
-
-    .chartWrap{
-      flex:1; position:relative; width:100%; min-height:0;
-      margin:calc(var(--u)*.3) 0;
-      container-type:size; /* o texto do centro acompanha o tamanho do círculo */
-    }
-    .chartWrap canvas{position:absolute; inset:0;}
-
-    .chartOverlay{
-      position:absolute; inset:0;
-      display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:none;
-    }
-    .chartPct{
-      font-size:calc(var(--f)*3); font-size:min(calc(var(--f)*3.6), 15cqmin); font-weight:900; color:var(--text);
-      letter-spacing:-.04em; line-height:1;
-    }
-    .chartLabel{font-size:calc(var(--f)*.85); font-size:min(calc(var(--f)*.85), 3.7cqmin); font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin-top:calc(var(--u)*.25);}
-    .chartToday{
-      font-size:calc(var(--f)*1.05); font-size:min(calc(var(--f)*1.05), 4.75cqmin); font-weight:800; color:var(--teal);
-      margin-top:calc(var(--u)*.35); visibility:hidden;
-    }
-    .chartToday.show{visibility:visible;}
-
-    .deptFooter{
-      display:flex; justify-content:space-between;
-      gap:calc(var(--u)*.6); padding:calc(var(--u)*.6) calc(var(--u)*.2) 0;
-      border-top:2px solid #f1f5f9;
-    }
-    .statItem{display:flex; flex-direction:column; align-items:center; justify-content:center; min-width:0;}
-    .statVal{font-size:calc(var(--f)*2.1); font-weight:900; line-height:1; letter-spacing:-.02em;}
-    .statVal.zero{opacity:.3;}
-    .statLabel{
-      font-size:calc(var(--f)*.8); font-weight:700; color:#64748b;
-      margin-top:calc(var(--u)*.3); white-space:nowrap;
-    }
-    .statLabel::before{
-      content:""; display:inline-block; width:calc(var(--u)*.5); height:calc(var(--u)*.5);
-      border-radius:50%; background:var(--dot); margin-right:calc(var(--u)*.25); vertical-align:.05em;
-    }
-
-    .c-green{color:var(--green)} .c-blue{color:var(--blue)} .c-red{color:var(--red)}
-    .c-teal{color:var(--teal)} .c-amber{color:var(--amber)}
 
     footer{
       display:flex; justify-content:space-between; align-items:center;
@@ -187,7 +103,7 @@
     .telaDots.sem-csat{display:none;}
 
     /* ---- Satisfação do Cliente: números no topo, comentários um a um, quadro por setor ---- */
-    #telaCsat{
+    #telaCsat, #telaOperacional{
       /* cores do manual da marca (modelo "Avaliações na TV") */
       --grafite:#3C3D3D; --azul-claro:#0896F7; --azul-medio:#0F74B9;
       --estrela:#F5B301; --estrela-vazia:rgba(60,61,61,.15); --suave:rgba(60,61,61,.7);
@@ -329,6 +245,80 @@
     .baixas{margin-top:calc(var(--u)*.6); font-size:calc(var(--f)*1.1); font-weight:800; color:#0B8A00; background:#f0fdf4; border-radius:calc(var(--u)*.5); padding:calc(var(--u)*.45) calc(var(--u)*.7);}
     .baixas.tem{color:var(--red); background:#fef2f2;}
 
+    /* ---- Painel Operacional: números do escritório, um departamento em destaque por vez, lista ao lado ---- */
+    .oper{height:100%; min-height:0; display:grid; grid-template-rows:auto 1fr; gap:calc(var(--u)*.8);}
+    .opPlacar{grid-template-columns:repeat(5,1fr);}
+    .anel .valor.verde{stroke:var(--green);}
+    .kpi.alerta{animation:bgPulse 2.4s infinite ease-in-out;}
+    .kpi.aviso{border-color:rgba(217,119,6,.6);}
+    .c-green{color:var(--green)} .c-blue{color:var(--blue)} .c-red{color:var(--red)}
+    .c-teal{color:var(--teal)} .c-amber{color:var(--amber)}
+
+    .opPalco{
+      min-height:0; display:grid; gap:calc(var(--u)*.8) calc(var(--u)*1.2);
+      grid-template-columns:1fr calc(var(--u)*30); grid-template-rows:1fr auto;
+    }
+    .destaque{
+      grid-column:1; grid-row:1; min-height:0; overflow:hidden;
+      background:#fff; border:2px solid rgba(60,61,61,.1); border-radius:calc(var(--u)*1.2);
+      box-shadow:0 calc(var(--u)*1) calc(var(--u)*2.6) rgba(15,55,90,.10);
+      padding:calc(var(--u)*1.1) calc(var(--u)*1.6); display:flex; flex-direction:column;
+    }
+    .destaque.alert{animation:bgPulse 2.4s infinite ease-in-out;}
+    .destaque.warn:not(.alert){border-color:rgba(217,119,6,.6);}
+    .dTopo{display:flex; justify-content:space-between; align-items:center; gap:calc(var(--u)*1);}
+    .dTopo h2{margin:0; font-size:calc(var(--f)*2.4); font-weight:900; text-transform:uppercase; letter-spacing:.01em; color:#334155; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+    .destaque.alert .dTopo h2{color:var(--red);}
+    .dSelo{flex:none; color:#fff; font-size:calc(var(--f)*1.05); font-weight:800; text-transform:uppercase; letter-spacing:.04em; padding:calc(var(--u)*.3) calc(var(--u)*.8); border-radius:calc(var(--u)*.4);}
+    .dSelo.atraso{background:var(--red); animation:textFlash 1.5s infinite;}
+    .dSelo.tec{background:var(--amber);}
+    .dSelo.ok{background:var(--green);}
+    .dCorpo{flex:1; min-height:0; display:grid; grid-template-columns:calc(var(--u)*23) 1fr; gap:calc(var(--u)*2.4); align-items:center;}
+    .dRosca{position:relative; width:calc(var(--u)*23); height:calc(var(--u)*23);}
+    .dRosca canvas{position:absolute; inset:0;}
+    .dCentro{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:none;}
+    .dCentro b{font-size:calc(var(--f)*5); font-weight:900; letter-spacing:-.04em; line-height:1; color:var(--text);}
+    .dCentro small{font-size:calc(var(--f)*1); font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin-top:calc(var(--u)*.3);}
+    .dCentro em{font-style:normal; font-size:calc(var(--f)*1.3); font-weight:800; color:var(--teal); margin-top:calc(var(--u)*.4);}
+    .dInfo{min-width:0; height:100%; display:flex; flex-direction:column; justify-content:center; gap:calc(var(--u)*1.1);}
+    .dNums{display:grid; grid-template-columns:repeat(5,1fr); gap:calc(var(--u)*.6);}
+    .dNum{background:#f8fafc; border-radius:calc(var(--u)*.7); padding:calc(var(--u)*.5) calc(var(--u)*.6); text-align:center;}
+    .dNum b{display:block; font-size:calc(var(--f)*2.5); font-weight:900; line-height:1.1; letter-spacing:-.02em;}
+    .dNum.zero b{opacity:.3;}
+    .dNum span{font-size:calc(var(--f)*.85); font-weight:700; color:var(--muted); white-space:nowrap;}
+    .dNum span::before{content:""; display:inline-block; width:calc(var(--u)*.5); height:calc(var(--u)*.5); border-radius:50%; background:var(--dot); margin-right:calc(var(--u)*.25); vertical-align:.05em;}
+    .dGraf h3{margin:0 0 calc(var(--u)*.4); font-size:calc(var(--f)*1.05); font-weight:800; text-transform:uppercase; letter-spacing:.02em; color:#334155;}
+    .dGraf h3 small{font-size:.8em; font-weight:700; color:var(--muted); text-transform:none; letter-spacing:0; margin-left:.4em;}
+    .colunas{display:grid; grid-template-columns:repeat(7,1fr); gap:calc(var(--u)*.6); height:calc(var(--u)*8);}
+    .col{display:flex; flex-direction:column; align-items:center; min-height:0;}
+    .col b{font-size:calc(var(--f)*1.15); font-weight:900; line-height:1.2;}
+    .col.zero b{opacity:.3;}
+    .colBarra{flex:1; width:72%; display:flex; align-items:flex-end; min-height:0;}
+    .colBarra i{display:block; width:100%; height:0; min-height:2px; background:var(--cor); border-radius:4px 4px 0 0; transition:height .9s cubic-bezier(.22,1,.36,1);}
+    .col span{font-size:calc(var(--f)*.85); font-weight:700; color:var(--muted); margin-top:calc(var(--u)*.25); white-space:nowrap;}
+    .col.hoje span{color:var(--grafite); font-weight:900;}
+    .col.fds span{opacity:.55;}
+
+    .opLista #opLista{flex:1; display:flex; flex-direction:column; gap:calc(var(--u)*.35); min-height:0;}
+    .opItem{padding:calc(var(--u)*.55) calc(var(--u)*.7); border-radius:calc(var(--u)*.6); border-left:calc(var(--u)*.3) solid transparent; transition:background .4s, border-color .4s;}
+    .opItem.ativo{background:#eff6ff; border-left-color:var(--azul-claro);}
+    .opItemTopo{display:flex; justify-content:space-between; align-items:baseline; gap:calc(var(--u)*.5);}
+    .opItemTopo span{font-size:calc(var(--f)*1.35); font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+    .opItemTopo b{font-size:calc(var(--f)*1.35); font-weight:900;}
+    .opItem.atraso .opItemTopo span{color:var(--red);}
+    .opItem .trilho{margin-top:calc(var(--u)*.3);}
+    .opItem .trilho i{background:var(--green);}
+    .opChips{display:flex; flex-wrap:wrap; gap:0 calc(var(--u)*.9); margin-top:calc(var(--u)*.3); font-size:calc(var(--f)*.95); font-weight:700; color:var(--muted);}
+    .opChips .r{color:var(--red);} .opChips .a{color:var(--amber);} .opChips .t{color:var(--teal);}
+    .chip{font-size:calc(var(--f)*.95); font-weight:800; color:#334155; background:#fff; border:1px solid rgba(60,61,61,.12); border-radius:99em; padding:calc(var(--u)*.2) calc(var(--u)*.7); opacity:.45; white-space:nowrap; transition:opacity .4s, transform .4s;}
+    .chip.atraso{color:var(--red); border-color:rgba(220,38,38,.4);}
+    .chip.ativa{opacity:1; transform:scale(1.1); box-shadow:0 0 0 calc(var(--u)*.15) rgba(8,150,247,.35);}
+
+    .destaque.entra .dTopo{animation:csSobe .5s ease-out both;}
+    .destaque.entra .dRosca{animation:csPopAvatar .7s cubic-bezier(.34,1.56,.64,1) .1s both;}
+    .destaque.entra .dNums{animation:csSobe .6s ease-out .3s both;}
+    .destaque.entra .dGraf{animation:csSobe .6s ease-out .45s both;}
+
     /* Entrada animada de cada comentário */
     .cena.entra .avatar{animation:csPopAvatar .7s cubic-bezier(.34,1.56,.64,1) both;}
     .cena.entra .nome, .cena.entra .origem{animation:csSobe .6s ease-out .25s both;}
@@ -350,7 +340,14 @@
       body{overflow:auto;}
       .wrap{height:auto; grid-template-rows:auto auto auto;}
       header{padding:calc(var(--u)*.8) calc(var(--u)*1.2);}
-      .deptGrid{grid-template-columns:1fr; grid-template-rows:none; grid-auto-rows:calc(var(--u)*30);}
+      .oper{grid-template-rows:none;}
+      .opPlacar{grid-template-columns:repeat(2,1fr);}
+      .opPalco{grid-template-columns:1fr; grid-template-rows:none;}
+      .destaque, .opPalco .rodapeCena, .opLista{grid-column:1; grid-row:auto;}
+      .dCorpo{grid-template-columns:1fr; justify-items:center;}
+      .dInfo{width:100%;}
+      .dNums{grid-template-columns:repeat(3,1fr);}
+      .fila{flex-wrap:wrap;}
       .tela{position:static;}
       .tela.oculta{display:none;}
       .csat, .csat.vazio{grid-template-rows:none;}
@@ -383,7 +380,40 @@
 
     <main>
       <section class="tela" id="telaOperacional">
-        <div class="deptGrid" id="deptGrid"></div>
+        <div class="oper">
+          <div class="placar opPlacar">
+            <div class="kpi">
+              <div class="anel"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="fundo" cx="50" cy="50" r="42"/><circle class="valor verde" id="opAnel" cx="50" cy="50" r="42"/></svg></div>
+              <div><small>Concluído no mês</small><div class="linha"><b id="opPct">—</b></div><div class="kpiSub" id="opPctSub"></div></div>
+            </div>
+            <div class="kpi"><div><small>Entregues hoje</small><div class="linha"><b class="c-teal" id="opHoje">—</b></div><div class="kpiSub" id="opHojeSub"></div></div></div>
+            <div class="kpi"><div><small>No prazo</small><div class="linha"><b class="c-blue" id="opPrazo">—</b></div><div class="kpiSub">abertas dentro do prazo</div></div></div>
+            <div class="kpi" id="opKpiTec"><div><small>Prazo técnico vencido</small><div class="linha"><b class="c-amber" id="opTec">—</b></div><div class="kpiSub">meta interna vencida, sem multa</div></div></div>
+            <div class="kpi" id="opKpiAtraso"><div><small>Atrasadas</small><div class="linha"><b class="c-red" id="opAtraso">—</b></div><div class="kpiSub">passaram da data de atraso</div></div></div>
+          </div>
+          <div class="opPalco">
+            <div class="destaque" id="destaque">
+              <div class="dTopo"><h2 id="dNome">—</h2><span class="dSelo" id="dSelo"></span></div>
+              <div class="dCorpo">
+                <div class="dRosca"><canvas id="dChart"></canvas><div class="dCentro"><b id="dPct">0%</b><small>concluído</small><em id="dHojeTxt"></em></div></div>
+                <div class="dInfo">
+                  <div class="dNums" id="dNums"></div>
+                  <div class="dGraf"><h3>Vencem nos próximos 7 dias<small>prazo técnico, ainda abertas</small></h3><div class="colunas" id="dProx"></div></div>
+                  <div class="dGraf"><h3>Entregues nos últimos 7 dias</h3><div class="colunas" id="dUlt"></div></div>
+                </div>
+              </div>
+            </div>
+            <div class="rodapeCena">
+              <div class="fila" id="opFila"></div>
+              <div class="barra"><i id="opBarra"></i></div>
+            </div>
+            <aside class="setores opLista">
+              <h2>Departamentos</h2>
+              <div class="legenda">% concluído no mês · pendências</div>
+              <div id="opLista"></div>
+            </aside>
+          </div>
+        </div>
       </section>
 
       <section class="tela oculta" id="telaCsat">
@@ -518,64 +548,40 @@ async function loadAcessorias(){
 /* =============================================
    RENDERIZAÇÃO
 ============================================= */
-// Um card por departamento, reaproveitado a cada minuto (sem redesenhar a tela).
-const cards = new Map();
 const fmt = (n)=>Number(n||0).toLocaleString("pt-BR");
-
-function buildDeptCard(parent, deptName){
-  const card=document.createElement("div"); card.className="deptCard";
-  card.innerHTML=`
-    <div class="badge alertBadge">⚠️ Atraso</div>
-    <div class="badge warnBadge">⏱ Prazo técnico</div>
-    <div class="deptTitle"></div>
-    <div class="chartWrap">
-      <canvas></canvas>
-      <div class="chartOverlay">
-        <span class="chartPct" data-pct>0%</span>
-        <span class="chartLabel">Concluído</span>
-        <span class="chartToday" data-hoje></span>
-      </div>
-    </div>
-    <div class="deptFooter">
-      <div class="statItem"><span class="statVal c-teal" data-today>0</span><span class="statLabel" style="--dot:${CORES.hoje}">Hoje</span></div>
-      <div class="statItem"><span class="statVal c-green" data-done>0</span><span class="statLabel" style="--dot:${CORES.concl}">Concluídas</span></div>
-      <div class="statItem"><span class="statVal c-blue" data-ontime>0</span><span class="statLabel" style="--dot:${CORES.prazo}">No prazo</span></div>
-      <div class="statItem"><span class="statVal c-amber" data-tec>0</span><span class="statLabel" style="--dot:${CORES.tec}">Pz. técnico</span></div>
-      <div class="statItem"><span class="statVal c-red" data-late>0</span><span class="statLabel" style="--dot:${CORES.atraso}">Atraso</span></div>
-    </div>`;
-  card.querySelector(".deptTitle").textContent=deptName;
-  parent.appendChild(card);
-  const chart=new Chart(card.querySelector("canvas").getContext("2d"),{
-    type:"doughnut",
-    data:{datasets:[{data:[],backgroundColor:[CORES.concl, CORES.hoje, CORES.atraso, CORES.tec, CORES.prazo, CORES.semPrazo],borderWidth:0,spacing:2}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:"70%",animation:{duration:600},
-             layout:{padding:4},plugins:{legend:{display:false},tooltip:{enabled:false}},events:[]}
-  });
-  return {card,chart};
-}
-
 const CORES={concl:"#16a34a", hoje:"#14b8a6", atraso:"#dc2626", tec:"#f59e0b", prazo:"#3b82f6", semPrazo:"#cbd5e1"};
+const DIAS_SEM=["dom","seg","ter","qua","qui","sex","sáb"];
+// Cada departamento fica em destaque entre 10 e 20 s (a tela dura 2 min: todos passam ao menos uma vez).
+const TEMPO_DEPTO_MIN=10000, TEMPO_DEPTO_MAX=20000;
+// Quantos departamentos aparecem na lista ao lado.
+const MAX_DEPTOS=8;
+
+const chaveDia=(d)=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const somaDias=(d,n)=>{ const x=new Date(d); x.setDate(x.getDate()+n); return x; };
 
 // Entregas do Acessórias: {d: departamento, p: prazo técnico, a: data em que vira "Atrasada!",
 // e: dia da entrega, s: C=concluída | A=aberta | D=dispensada}. Datas AAAA-MM-DD.
 function computeTaskMetrics(rows){
   const t0=todayStart();
-  const novo=()=>({done:0,doneToday:0,doneBefore:0,open:0,late:0,tec:0,onTime:0,noDue:0});
+  const novo=()=>({done:0,doneToday:0,doneBefore:0,open:0,late:0,tec:0,onTime:0,noDue:0,porPrazo:{},porEntrega:{}});
   const deptMap=new Map();
   // Dispensadas ficam fora da conta, como as "Desconsideradas" do Onvio.
   for(const r of rows){
     if(r.s==="D") continue;
-    const key=String(r.d||"").trim()||"Sem departamento";
+    // Departamento filho ("Contábil - Emilly", "Sucesso do Cliente - Nayla") entra no pai.
+    const key=String(r.d||"").split(/\s+[-–]\s+/)[0].trim()||"Sem departamento";
     if(!deptMap.has(key)) deptMap.set(key,novo());
     const d=deptMap.get(key);
     if(r.s==="C"){
       d.done++;
       const ent=parseDate(r.e);
+      if(ent){ const k=chaveDia(ent); d.porEntrega[k]=(d.porEntrega[k]||0)+1; }
       if(ent&&ent.getTime()===t0.getTime()) d.doneToday++; else d.doneBefore++;
       continue;
     }
     d.open++;
     const prazo=parseDate(r.p), atraso=parseDate(r.a)||prazo;
+    if(prazo){ const k=chaveDia(prazo); d.porPrazo[k]=(d.porPrazo[k]||0)+1; }
     if(!prazo) d.noDue++;
     else if(atraso<t0) d.late++;   // passou da data de atraso: atrasada de verdade
     else if(prazo<t0) d.tec++;     // só o prazo técnico venceu
@@ -584,33 +590,131 @@ function computeTaskMetrics(rows){
   return {deptMap};
 }
 
+/* ---- Um departamento em destaque por vez (como os comentários da tela de Satisfação) ---- */
+const opCar={lista:[],i:0,timer:null,rodando:false,chave:null};
+let dChart=null;
+
 function renderDepartments(m){
-  const grid=el("deptGrid");
-  const list=[...m.deptMap.entries()].map(([dept,c])=>({dept,...c}))
-    .sort((a,b)=>(b.open-a.open)||(b.late-a.late)).slice(0,6);
-  // Só remonta a grade se mudar a lista de departamentos
-  if(list.map(x=>x.dept).join("|")!==[...cards.keys()].join("|")){
-    for(const c of cards.values()) c.chart.destroy();
-    cards.clear(); grid.innerHTML="";
-    for(const item of list) cards.set(item.dept, buildDeptCard(grid,item.dept));
+  const lista=[...m.deptMap.entries()].map(([dept,c])=>({dept,...c}))
+    .sort((a,b)=>(b.open-a.open)||(b.late-a.late)).slice(0,MAX_DEPTOS);
+
+  // Números do escritório inteiro
+  const soma=(k)=>lista.reduce((s,x)=>s+(x[k]||0),0);
+  const done=soma("done"), open=soma("open"), total=done+open;
+  const pct=total?done*100/total:0;
+  el("opPct").textContent=`${Math.round(pct)}%`;
+  el("opPctSub").textContent=`${fmt(done)} de ${fmt(total)} entregas`;
+  const anel=el("opAnel"), C=2*Math.PI*42;
+  anel.style.strokeDasharray=C; anel.style.strokeDashoffset=C*(1-pct/100);
+  el("opHoje").textContent=fmt(soma("doneToday"));
+  const ontem=chaveDia(somaDias(todayStart(),-1));
+  el("opHojeSub").textContent=`ontem: ${fmt(lista.reduce((s,x)=>s+(x.porEntrega[ontem]||0),0))}`;
+  el("opPrazo").textContent=fmt(soma("onTime")+soma("noDue"));
+  el("opTec").textContent=fmt(soma("tec"));
+  el("opAtraso").textContent=fmt(soma("late"));
+  el("opKpiAtraso").classList.toggle("alerta",soma("late")>0);
+  el("opKpiTec").classList.toggle("aviso",soma("tec")>0);
+
+  // Lista ao lado
+  el("opLista").innerHTML=lista.map((x,k)=>{
+    const t=x.done+x.open, p=t?Math.round(x.done*100/t):0;
+    const chips=[x.late?`<span class="r">● ${fmt(x.late)} atraso</span>`:"",
+                 x.tec?`<span class="a">● ${fmt(x.tec)} pz. técnico</span>`:"",
+                 x.doneToday?`<span class="t">+${fmt(x.doneToday)} hoje</span>`:""].join("")
+               ||`<span>${fmt(x.open)} em aberto</span>`;
+    return `<div class="opItem${x.late?" atraso":""}" data-k="${k}">
+      <div class="opItemTopo"><span>${escapeHtml(x.dept)}</span><b>${p}%</b></div>
+      <div class="trilho"><i style="width:${p}%"></i></div>
+      <div class="opChips">${chips}</div></div>`;
+  }).join("");
+
+  const chave=lista.map(x=>x.dept).join("|");
+  if(chave!==opCar.chave){
+    opCar.chave=chave; opCar.i=0;
+    el("opFila").innerHTML=lista.map((x,k)=>`<span class="chip${x.late?" atraso":""}" data-k="${k}">${escapeHtml(x.dept)}</span>`).join("");
+  }else{
+    lista.forEach((x,k)=>el("opFila").children[k]?.classList.toggle("atraso",x.late>0));
   }
-  for(const item of list){
-    const {card,chart}=cards.get(item.dept);
-    card.classList.toggle("alert",item.late>0);
-    card.classList.toggle("warn",item.tec>0);
-    const valores={today:item.doneToday, done:item.doneBefore, ontime:item.onTime+item.noDue, tec:item.tec, late:item.late};
-    for(const [k,v] of Object.entries(valores)){
-      const n=card.querySelector(`[data-${k}]`);
-      n.textContent=fmt(v); n.classList.toggle("zero",v===0);
-    }
-    const totalDept=item.done+item.open;
-    const pct=totalDept>0?Math.round((item.done/totalDept)*100):0;
-    card.querySelector("[data-pct]").textContent=`${pct}%`;
-    const hoje=card.querySelector("[data-hoje]");
-    hoje.textContent=`+${fmt(item.doneToday)} hoje`;
-    hoje.classList.toggle("show",item.doneToday>0);
-    chart.data.datasets[0].data=[item.doneBefore, item.doneToday, item.late, item.tec, item.onTime, item.noDue];
-    chart.update();
+  opCar.lista=lista;
+  if(opCar.i>=lista.length) opCar.i=0;
+  // Dados novos: atualiza o destaque atual sem animar; a fila só começa se a tela estiver visível.
+  if(opCar.rodando) mostrarDepto(opCar.i,false);
+  else if(telaAtual==="operacional") opIniciar();
+}
+
+function opIniciar(){
+  opParar();
+  const n=opCar.lista.length;
+  if(!n) return;
+  const tempo=Math.max(TEMPO_DEPTO_MIN,Math.min(TEMPO_DEPTO_MAX,ROTACAO_MS/n));
+  el("telaOperacional").style.setProperty("--tempo",`${tempo/1000}s`);
+  opCar.rodando=true; opCar.i=0;
+  mostrarDepto(0,true);
+  if(n>1) opCar.timer=setInterval(()=>{ opCar.i=(opCar.i+1)%opCar.lista.length; mostrarDepto(opCar.i,true); },tempo);
+}
+
+function opParar(){
+  clearInterval(opCar.timer);
+  opCar.timer=null; opCar.rodando=false;
+}
+
+function colunas(alvo,dias,valores,cor){
+  const maior=Math.max(1,...dias.map(d=>valores[chaveDia(d)]||0));
+  const hoje=chaveDia(todayStart());
+  alvo.innerHTML=dias.map(d=>{
+    const v=valores[chaveDia(d)]||0, fds=d.getDay()===0||d.getDay()===6;
+    return `<div class="col${v?"":" zero"}${chaveDia(d)===hoje?" hoje":""}${fds?" fds":""}">
+      <b>${fmt(v)}</b><div class="colBarra"><i style="--cor:${cor}" data-h="${v/maior*100}"></i></div>
+      <span>${chaveDia(d)===hoje?"hoje":`${DIAS_SEM[d.getDay()]} ${String(d.getDate()).padStart(2,"0")}`}</span></div>`;
+  }).join("");
+}
+
+function mostrarDepto(i,animar){
+  const x=opCar.lista[i];
+  if(!x) return;
+  const dest=el("destaque");
+  el("dNome").textContent=x.dept;
+  const selo=el("dSelo");
+  if(x.late){ selo.className="dSelo atraso"; selo.textContent=`⚠ ${fmt(x.late)} em atraso`; }
+  else if(x.tec){ selo.className="dSelo tec"; selo.textContent=`⏱ ${fmt(x.tec)} prazo técnico`; }
+  else { selo.className="dSelo ok"; selo.textContent="✓ Em dia"; }
+  dest.classList.toggle("alert",x.late>0);
+  dest.classList.toggle("warn",x.tec>0);
+
+  const t=x.done+x.open;
+  el("dPct").textContent=`${t?Math.round(x.done*100/t):0}%`;
+  el("dHojeTxt").textContent=x.doneToday?`+${fmt(x.doneToday)} hoje`:"";
+
+  const nums=[["Hoje",x.doneToday,"c-teal",CORES.hoje],["Concluídas",x.doneBefore,"c-green",CORES.concl],
+              ["No prazo",x.onTime+x.noDue,"c-blue",CORES.prazo],["Pz. técnico",x.tec,"c-amber",CORES.tec],
+              ["Atraso",x.late,"c-red",CORES.atraso]];
+  el("dNums").innerHTML=nums.map(([rot,v,cls,cor])=>
+    `<div class="dNum${v?"":" zero"}"><b class="${cls}">${fmt(v)}</b><span style="--dot:${cor}">${rot}</span></div>`).join("");
+
+  const t0=todayStart();
+  colunas(el("dProx"),[0,1,2,3,4,5,6].map(n=>somaDias(t0,n)),x.porPrazo,CORES.prazo);
+  colunas(el("dUlt"),[-6,-5,-4,-3,-2,-1,0].map(n=>somaDias(t0,n)),x.porEntrega,CORES.concl);
+  setTimeout(()=>document.querySelectorAll("#destaque .colBarra i").forEach(b=>{ b.style.height=`${b.dataset.h}%`; }),animar?500:0);
+
+  const dados=[x.doneBefore,x.doneToday,x.late,x.tec,x.onTime,x.noDue];
+  if(!dChart){
+    dChart=new Chart(el("dChart").getContext("2d"),{
+      type:"doughnut",
+      data:{datasets:[{data:dados,backgroundColor:[CORES.concl,CORES.hoje,CORES.atraso,CORES.tec,CORES.prazo,CORES.semPrazo],borderWidth:0,spacing:2}]},
+      options:{responsive:true,maintainAspectRatio:false,cutout:"72%",animation:{duration:900},
+               layout:{padding:4},plugins:{legend:{display:false},tooltip:{enabled:false}},events:[]}
+    });
+  }else{
+    dChart.data.datasets[0].data=dados;
+    if(animar) dChart.reset();
+    dChart.update();
+  }
+
+  document.querySelectorAll("#opLista .opItem").forEach((n,k)=>n.classList.toggle("ativo",k===i));
+  document.querySelectorAll("#opFila .chip").forEach((n,k)=>n.classList.toggle("ativa",k===i));
+  if(animar){
+    dest.classList.remove("entra"); void dest.offsetWidth; dest.classList.add("entra");
+    const b=el("opBarra"); b.classList.remove("rodando"); void b.offsetWidth; b.classList.add("rodando");
   }
 }
 
@@ -785,7 +889,10 @@ function mostrarTela(t){
   const mudou=t!==telaAtual;
   telaAtual=t;
   // Os comentários recomeçam do primeiro sempre que a tela de CSAT entra.
-  if(mudou){ if(t==="csat") carrosselIniciar(); else carrosselParar(); }
+  if(mudou){
+    if(t==="csat") carrosselIniciar(); else carrosselParar();
+    if(t==="operacional") opIniciar(); else opParar();
+  }
   el("telaOperacional").classList.toggle("oculta",t!=="operacional");
   el("telaCsat").classList.toggle("oculta",t!=="csat");
   const dots=el("telaDots").children;

@@ -3,6 +3,9 @@
 Painel para a TV com duas telas que se alternam a cada 2 minutos:
 
 1. **Painel Operacional**: entregas (obrigações e tarefas) do mês por departamento, vindas do Acessórias.
+   No topo, os números do escritório no mês; no centro, um departamento em destaque por vez (rosca,
+   números, o que vence nos próximos 7 dias e o que foi entregue nos últimos 7); à direita, a lista dos
+   departamentos. Departamento filho ("Contábil - Emilly") entra no pai ("Contábil").
 2. **Satisfação do Cliente**: avaliações dos clientes (notas de 1 a 5) somadas de dois canais: a pesquisa
    do WhatsApp (Bradial) e a nota dada ao finalizar uma solicitação no Acessórias. Mês atual comparado com o
    anterior. Se um canal falhar, a tela segue com o outro; sem nenhum, a TV fica só na primeira tela.
