@@ -20,12 +20,34 @@ permissions:
   id-token: write
   actions: write  # para a rodada disparar a próxima
 
-concurrency:
-  group: painel
-  cancel-in-progress: false
-
 jobs:
+  # Às vezes o GitHub deixa uma rodada presa em "waiting" (ambiente github-pages) para sempre,
+  # e as seguintes ficam na fila atrás dela (06/10 e 10/10/2026). Este job fica fora da fila:
+  # toda rodada nova, inclusive a do agendamento, cancela a presa há mais de 20 min.
+  vigia:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Cancelar rodada presa
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          limite=$(date -u -d '-20 min' +%Y-%m-%dT%H:%M:%SZ)
+          gh run list --repo "$GITHUB_REPOSITORY" --workflow painel.yml --status waiting \
+              --json databaseId,createdAt --jq ".[] | select(.createdAt < \"$limite\") | .databaseId" |
+            while read -r id; do
+              echo "Cancelando a rodada $id, presa em 'waiting'."
+              gh run cancel "$id" --repo "$GITHUB_REPOSITORY" || true
+            done
+
   atualizar:
+    needs: vigia
+    if: ${{ !cancelled() }}
+    # Fila: uma rodada por vez; rodadas duplicadas se anulam (só fica uma esperando).
+    concurrency:
+      group: painel
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment:
