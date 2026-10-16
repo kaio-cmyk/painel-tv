@@ -9,8 +9,9 @@ Roda no GitHub Actions junto com o sincronizar.py (.github/workflows/painel.yml)
   - interna: o autor não é um dos responsáveis da solicitação.
 A espera conta da primeira mensagem da sequência final que não é nossa.
 
-O arquivo publicado leva só contagens por departamento e tempo de espera: nada de cliente, assunto,
-número da solicitação ou nome de colaborador. Departamento filho ("Contábil - Emilly") entra no pai.
+O arquivo publicado leva contagens por departamento, tempo de espera e, de cada solicitação sem resposta,
+o número e o nome do cliente (pedido do Kaio em 16/10/2026). Nunca o assunto, o texto ou nome de
+colaborador. Departamento filho ("Contábil - Emilly") entra no pai.
 
 Token: ACESSORIAS_TOKEN; localmente, cai para o .mcp.json da raiz. Datas no horário de Brasília.
 """
@@ -29,7 +30,7 @@ from pathlib import Path
 sys.stdout.reconfigure(encoding="utf-8")
 
 RAIZ = Path(__file__).resolve().parent.parent
-VERSAO = 1
+VERSAO = 2
 ACESSORIAS = "https://api.acessorias.com"
 # Limite do Acessórias é 100/min, dividido com o sincronizar.py, o csat.py, o MCP e o P.I.V.O.
 PAUSA = 0.8
@@ -156,7 +157,8 @@ def main():
         det = chamar(f"requests/{resumo['SolID']}")
         sol = det[0] if isinstance(det, list) and det else resumo
         grupo = saida[chave]
-        depto = grupo["por_depto"].setdefault(depto_pai(sol.get("DptoNome") or resumo.get("DptoNome")), novo_grupo())
+        depto = grupo["por_depto"].setdefault(depto_pai(sol.get("DptoNome") or resumo.get("DptoNome")),
+                                              {**novo_grupo(), "pendentes": []})
         grupo["abertas"] += 1
         depto["abertas"] += 1
         desde = esperando_desde(sol, equipe)
@@ -164,8 +166,13 @@ def main():
             horas = max(0.0, (agora - desde).total_seconds() / 3600)
             somar(grupo, horas)
             somar(depto, horas)
+            depto["pendentes"].append({"id": str(resumo["SolID"]),
+                                       "cliente": (sol.get("EmpNome") or resumo.get("EmpNome") or "").strip(),
+                                       "horas": round(horas, 1)})
 
     for grupo in saida.values():
+        for d in grupo["por_depto"].values():
+            d["pendentes"].sort(key=lambda x: -x["horas"])
         grupo["por_depto"] = sorted(({"depto": d, **g} for d, g in grupo["por_depto"].items()),
                                     key=lambda x: (-x["sem_resposta"], -(x["mais_antiga_dias"] or 0), -x["abertas"], x["depto"]))
 

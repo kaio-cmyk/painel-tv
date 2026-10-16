@@ -14,8 +14,11 @@ Painel para a TV com três telas que se alternam a cada 2 minutos:
    por setor (nota média e avaliações ÷ atendimentos encerrados) e o alerta de notas de 1 a 3.
 
 3. **Solicitações sem resposta**: solicitações em aberto no Acessórias (Nova, Resolvendo, Cliente) em que a
-   última mensagem não é nossa, separadas em externas (clientes) e internas (equipe), por departamento e
-   tempo de espera (até 1 dia, 1 a 3 dias, mais de 3 dias). Só contagens: sem cliente, assunto ou número.
+   última mensagem não é nossa, externas (clientes) e internas (equipe). Um departamento por vez, em
+   vermelho se tiver alguma, com o número da solicitação, o cliente e há quanto tempo espera.
+   O número e o nome do cliente vão para o site público (pedido do Kaio em 16/10/2026); nunca o assunto.
+
+Ordem do rodízio: Painel Operacional → Solicitações sem resposta → Satisfação do Cliente.
 
 - `index.html`: o painel. Lê o `dados.json`, o `csat.json` e o `solicitacoes.json` a cada minuto.
 - `sincronizar.py`: busca as entregas na API do Acessórias e gera o `dados.json`.

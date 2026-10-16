@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>Conta Junto — Dashboard TV (v34)</title>
+  <title>Conta Junto — Dashboard TV (v35)</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -319,29 +319,28 @@
     .destaque.entra .dNums{animation:csSobe .6s ease-out .3s both;}
     .destaque.entra .dGraf{animation:csSobe .6s ease-out .45s both;}
 
-    /* ---- Solicitações sem resposta: externas (clientes) × internas (equipe) ---- */
+    /* ---- Solicitações sem resposta: um departamento por vez, com as solicitações pendentes ---- */
     .sol{height:100%; min-height:0; display:grid; grid-template-rows:auto 1fr auto; gap:calc(var(--u)*.8);}
     .solPlacar{grid-template-columns:repeat(4,1fr);}
-    .solPalco{min-height:0; display:grid; grid-template-columns:1fr 1fr; gap:calc(var(--u)*1.2);}
-    .setores.solQuadro{grid-column:auto; grid-row:auto;}
-    .solQuadro h2 b{color:var(--grafite); margin-left:.3em;}
-    .solLista{flex:1; display:flex; flex-direction:column; gap:calc(var(--u)*.9); min-height:0;}
-    .solItem{border-top:1px solid rgba(60,61,61,.08); padding-top:calc(var(--u)*.8);}
-    .solItem:first-child{border-top:0; padding-top:0;}
-    .solTopo{display:flex; justify-content:space-between; align-items:baseline; gap:calc(var(--u)*.6);}
-    .solDepto{font-size:calc(var(--f)*1.6); font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-    .solNum{font-size:calc(var(--f)*2.4); font-weight:900; line-height:1;}
-    .solNum.zero{color:var(--green); font-size:calc(var(--f)*1.4);}
-    .solBarra{display:flex; gap:2px; height:calc(var(--u)*1.1); margin-top:calc(var(--u)*.45); background:rgba(60,61,61,.08); border-radius:99em; overflow:hidden;}
-    .solBarra i{display:block; height:100%; width:0; transition:width 1.2s cubic-bezier(.22,1,.36,1);}
-    .solBarra i.f1{background:var(--teal);} .solBarra i.f2{background:var(--amber);} .solBarra i.f3{background:var(--red);}
-    .solInfo{margin-top:calc(var(--u)*.35); font-size:calc(var(--f)*1.05); font-weight:700; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-    .solInfo .r{color:var(--red);}
-    .solVazio{flex:1; display:flex; align-items:center; justify-content:center; text-align:center; font-size:calc(var(--f)*1.6); font-weight:800; color:var(--green);}
+    .solResumo{display:flex; flex-wrap:wrap; gap:calc(var(--u)*.5) calc(var(--u)*1.6); margin-top:calc(var(--u)*.5); font-size:calc(var(--f)*1.2); font-weight:700; color:var(--muted);}
+    .solResumo b{color:var(--grafite); font-weight:900;}
+    .solResumo .r{color:var(--red);}
+    .solTabela{flex:1; min-height:0; margin-top:calc(var(--u)*1); display:grid; grid-template-columns:1fr 1fr; grid-auto-rows:min-content; gap:calc(var(--u)*.7) calc(var(--u)*1);}
+    .solReq{display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:calc(var(--u)*.9);
+      background:#f8fafc; border-left:calc(var(--u)*.4) solid var(--teal); border-radius:calc(var(--u)*.6); padding:calc(var(--u)*.6) calc(var(--u)*.9);}
+    .solReq.f2{border-left-color:var(--amber);} .solReq.f3{border-left-color:var(--red); background:#fef2f2;}
+    .solReq .id{font-size:calc(var(--f)*1.3); font-weight:900; color:var(--grafite);}
+    .solReq .cli{font-size:calc(var(--f)*1.3); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0;}
+    .solReq em{font-style:normal; font-size:calc(var(--f)*1.05); font-weight:800; white-space:nowrap; color:var(--teal);}
+    .solReq.f2 em{color:var(--amber);} .solReq.f3 em{color:var(--red);}
+    .solReq small{display:block; font-size:.75em; font-weight:700; color:var(--muted); text-align:right;}
+    .solOk{flex:1; display:flex; align-items:center; justify-content:center; font-size:calc(var(--f)*2.2); font-weight:900; color:var(--green);}
+    .solMais{grid-column:1/-1; font-size:calc(var(--f)*1.05); font-weight:700; color:var(--muted); text-align:center;}
     .solLegenda{display:flex; justify-content:center; gap:calc(var(--u)*2.4); font-size:calc(var(--f)*1.05); font-weight:700; color:var(--muted);}
     .solLegenda span::before{content:""; display:inline-block; width:calc(var(--u)*.9); height:calc(var(--u)*.9); border-radius:3px; background:var(--cor); margin-right:calc(var(--u)*.4); vertical-align:-.1em;}
-    .sol.entra .kpi{animation:csSobe .5s ease-out both;}
-    .sol.entra .solItem{animation:csSobe .6s ease-out both; animation-delay:var(--d,0s);}
+    .destaque.entra .solResumo{animation:csSobe .5s ease-out .2s both;}
+    .destaque.entra .solReq, .destaque.entra .solOk{animation:csSobe .5s ease-out both; animation-delay:var(--d,.3s);}
+    .opItem .opItemTopo b.zero{color:var(--green);}
 
     /* Entrada animada de cada comentário */
     .cena.entra .avatar{animation:csPopAvatar .7s cubic-bezier(.34,1.56,.64,1) both;}
@@ -374,7 +373,7 @@
       .fila{flex-wrap:wrap;}
       .sol{grid-template-rows:none;}
       .solPlacar{grid-template-columns:repeat(2,1fr);}
-      .solPalco{grid-template-columns:1fr;}
+      .solTabela{grid-template-columns:1fr;}
       .solLegenda{flex-wrap:wrap; gap:calc(var(--u)*.6) calc(var(--u)*1.6);}
       .tela{position:static;}
       .tela.oculta{display:none;}
@@ -491,20 +490,24 @@
             <div class="kpi" id="solKpiVelhas"><div><small>Esperando há mais de 3 dias</small><div class="linha"><b class="c-red" id="solMais3">—</b></div><div class="kpiSub">externas e internas</div></div></div>
             <div class="kpi"><div><small>Mais antiga sem resposta</small><div class="linha"><b id="solAntiga">—</b><em id="solAntigaUn"></em></div><div class="kpiSub" id="solAntigaSub"></div></div></div>
           </div>
-          <div class="solPalco">
-            <section class="setores solQuadro">
-              <h2>Externas · clientes<b id="solExtTit"></b></h2>
-              <div class="legenda">A última mensagem é do cliente: falta a nossa resposta</div>
-              <div class="solLista" id="solListaExt"></div>
-            </section>
-            <section class="setores solQuadro">
-              <h2>Internas · equipe<b id="solIntTit"></b></h2>
-              <div class="legenda">A última mensagem não é do responsável: falta a resposta dele</div>
-              <div class="solLista" id="solListaInt"></div>
-            </section>
+          <div class="opPalco">
+            <div class="destaque" id="solDest">
+              <div class="dTopo"><h2 id="solDNome">—</h2><span class="dSelo" id="solDSelo"></span></div>
+              <div class="solResumo" id="solDResumo"></div>
+              <div class="solTabela" id="solTabela"></div>
+            </div>
+            <div class="rodapeCena">
+              <div class="fila" id="solFila"></div>
+              <div class="barra"><i id="solBarra"></i></div>
+            </div>
+            <aside class="setores opLista">
+              <h2>Departamentos</h2>
+              <div class="legenda">sem resposta · em aberto (externas e internas)</div>
+              <div id="solDeptos"></div>
+            </aside>
           </div>
           <div class="solLegenda">
-            <span style="--cor:var(--teal)">até 1 dia esperando</span>
+            <span style="--cor:var(--teal)">esperando até 1 dia</span>
             <span style="--cor:var(--amber)">1 a 3 dias</span>
             <span style="--cor:var(--red)">mais de 3 dias</span>
           </div>
@@ -942,30 +945,34 @@ async function loadSolicitacoes(){
 }
 
 const dias=(n)=>n===1?"dia":"dias";
+// Quantas solicitações cabem no destaque; acima disso o departamento ocupa mais de uma vez na fila.
+const SOL_POR_PAGINA=10;
+// Cada departamento (ou página) fica entre 8 e 20 s; a tela toda dura 2 min.
+const TEMPO_SOL_MIN=8000, TEMPO_SOL_MAX=20000;
+const solCar={slots:[],deptos:[],i:0,timer:null,rodando:false,chave:null};
 
-function solLista(alvo,g){
-  const deptos=(g?.por_depto||[]).filter(d=>d.abertas);
-  if(!g||!g.sem_resposta){
-    alvo.innerHTML=`<div class="solVazio">✓ Nenhuma solicitação sem resposta</div>`;
-    return;
-  }
-  const maior=Math.max(1,...deptos.map(d=>d.sem_resposta));
-  alvo.innerHTML=deptos.map((d,k)=>{
-    const f=d.faixas||{}, w=(n)=>`${(n||0)/maior*100}%`;
-    const info=d.sem_resposta
-      ?`de ${fmt(d.abertas)} em aberto · mais antiga: <span class="${(d.mais_antiga_dias||0)>3?"r":""}">${d.mais_antiga_dias?`${fmt(d.mais_antiga_dias)} ${dias(d.mais_antiga_dias)}`:"hoje"}</span>`
-      :`${fmt(d.abertas)} em aberto, todas respondidas`;
-    return `<div class="solItem" style="--d:${.15+k*.08}s">
-      <div class="solTopo"><span class="solDepto">${escapeHtml(d.depto)}</span><b class="solNum${d.sem_resposta?"":" zero"}">${d.sem_resposta?fmt(d.sem_resposta):"✓ 0"}</b></div>
-      <div class="solBarra"><i class="f1" data-w="${w(f.ate1)}"></i><i class="f2" data-w="${w(f.de1a3)}"></i><i class="f3" data-w="${w(f.mais3)}"></i></div>
-      <div class="solInfo">${info}</div></div>`;
-  }).join("");
+function espera(h){
+  if(h<1) return "agora há pouco";
+  if(h<24) return `há ${Math.floor(h)} h`;
+  const d=Math.floor(h/24); return `há ${d} ${dias(d)}`;
 }
 
-function solBarras(animar){
-  const barras=document.querySelectorAll("#telaSol .solBarra i");
-  const aplicar=()=>barras.forEach(b=>{ b.style.width=b.dataset.w; });
-  if(animar){ barras.forEach(b=>{ b.style.width="0"; }); setTimeout(aplicar,350); } else aplicar();
+// Junta externas e internas por departamento.
+function solDeptos(s){
+  const mapa=new Map();
+  for(const [tipo,g] of [["externa",s.externas],["interna",s.internas]]){
+    for(const d of g?.por_depto||[]){
+      if(!mapa.has(d.depto)) mapa.set(d.depto,{depto:d.depto,abertas:0,sem:0,ext:0,int:0,mais3:0,antiga:null,pend:[]});
+      const x=mapa.get(d.depto);
+      x.abertas+=d.abertas; x.sem+=d.sem_resposta; x[tipo==="externa"?"ext":"int"]+=d.sem_resposta;
+      x.mais3+=d.faixas?.mais3||0;
+      if(d.sem_resposta) x.antiga=Math.max(x.antiga||0,d.mais_antiga_dias||0);
+      for(const p of d.pendentes||[]) x.pend.push({...p,tipo});
+    }
+  }
+  const lista=[...mapa.values()];
+  lista.forEach(x=>x.pend.sort((a,b)=>b.horas-a.horas));
+  return lista.sort((a,b)=>(b.sem-a.sem)||(b.abertas-a.abertas)||a.depto.localeCompare(b.depto));
 }
 
 function renderSolicitacoes(s){
@@ -974,42 +981,96 @@ function renderSolicitacoes(s){
   el("solExtSub").textContent=`de ${fmt(ext.abertas)} externas em aberto`;
   el("solInt").textContent=fmt(int.sem_resposta);
   el("solIntSub").textContent=`de ${fmt(int.abertas)} internas em aberto`;
-  el("solExt").className=ext.sem_resposta?"c-amber":"c-green";
-  el("solInt").className=int.sem_resposta?"c-amber":"c-green";
+  el("solExt").className=ext.sem_resposta?"c-red":"c-green";
+  el("solInt").className=int.sem_resposta?"c-red":"c-green";
   const mais3=(ext.faixas?.mais3||0)+(int.faixas?.mais3||0);
   el("solMais3").textContent=fmt(mais3);
   el("solMais3").className=mais3?"c-red":"c-green";
   el("solKpiVelhas").classList.toggle("alerta",mais3>0);
 
-  // Mais antiga: qual departamento e se é externa ou interna
-  const candidatos=[["externa",ext],["interna",int]].flatMap(([tipo,g])=>(g.por_depto||[])
-    .filter(d=>d.sem_resposta).map(d=>({tipo,depto:d.depto,dias:d.mais_antiga_dias||0})));
-  const velha=candidatos.sort((a,b)=>b.dias-a.dias)[0];
+  const deptos=solDeptos(s);
+  const velha=deptos.filter(d=>d.sem).sort((a,b)=>b.antiga-a.antiga)[0];
   if(!velha){ el("solAntiga").textContent="—"; el("solAntigaUn").textContent=""; el("solAntigaSub").textContent="nenhuma esperando"; }
   else{
-    el("solAntiga").textContent=velha.dias?fmt(velha.dias):"hoje";
-    el("solAntigaUn").textContent=velha.dias?dias(velha.dias):"";
-    el("solAntiga").className=velha.dias>3?"c-red":velha.dias>=1?"c-amber":"c-teal";
-    el("solAntigaSub").textContent=`${velha.depto} · ${velha.tipo}`;
+    el("solAntiga").textContent=velha.antiga?fmt(velha.antiga):"hoje";
+    el("solAntigaUn").textContent=velha.antiga?dias(velha.antiga):"";
+    el("solAntiga").className=velha.antiga>3?"c-red":velha.antiga>=1?"c-amber":"c-teal";
+    el("solAntigaSub").textContent=velha.depto;
   }
-  el("solExtTit").textContent=ext.sem_resposta?`· ${fmt(ext.sem_resposta)}`:"";
-  el("solIntTit").textContent=int.sem_resposta?`· ${fmt(int.sem_resposta)}`:"";
-  solLista(el("solListaExt"),ext);
-  solLista(el("solListaInt"),int);
-  solBarras(false);
+
+  // Lista ao lado: vermelho em quem tem qualquer solicitação sem resposta.
+  el("solDeptos").innerHTML=deptos.map((d,k)=>`<div class="opItem${d.sem?" atraso":""}" data-k="${k}">
+      <div class="opItemTopo"><span>${escapeHtml(d.depto)}</span><b class="${d.sem?"c-red":"zero"}">${d.sem?fmt(d.sem):"✓ 0"}</b></div>
+      <div class="opChips">${d.sem?`<span class="r">${d.ext?`${fmt(d.ext)} externa${d.ext>1?"s":""}`:""}${d.ext&&d.int?" · ":""}${d.int?`${fmt(d.int)} interna${d.int>1?"s":""}`:""}</span>`:""}<span>${fmt(d.abertas)} em aberto</span></div>
+    </div>`).join("");
+
+  // Fila: um departamento por vez; com muitas pendências ele vira mais de uma página.
+  const slots=[];
+  deptos.forEach((d,k)=>{
+    const paginas=Math.max(1,Math.ceil(d.pend.length/SOL_POR_PAGINA));
+    for(let p=0;p<paginas;p++) slots.push({k,p,paginas});
+  });
+  solCar.deptos=deptos; solCar.slots=slots;
+  const chave=deptos.map(d=>`${d.depto}:${d.pend.length}`).join("|");
+  if(chave!==solCar.chave){
+    solCar.chave=chave; solCar.i=0;
+    el("solFila").innerHTML=deptos.map((d,k)=>`<span class="chip${d.sem?" atraso":""}" data-k="${k}">${escapeHtml(d.depto)}</span>`).join("");
+    if(solCar.rodando) solIniciar();
+  }
+  if(solCar.i>=slots.length) solCar.i=0;
+  if(solCar.rodando) mostrarSol(solCar.i,false);
+  else if(telaAtual==="solicitacoes") solIniciar();
 }
 
-function solAnimar(){
-  const g=el("solGrid");
-  g.classList.remove("entra"); void g.offsetWidth; g.classList.add("entra");
-  solBarras(true);
+function solIniciar(){
+  solParar();
+  const n=solCar.slots.length;
+  if(!n) return;
+  const tempo=Math.max(TEMPO_SOL_MIN,Math.min(TEMPO_SOL_MAX,ROTACAO_MS/n));
+  el("telaSol").style.setProperty("--tempo",`${tempo/1000}s`);
+  solCar.rodando=true; solCar.i=0;
+  mostrarSol(0,true);
+  if(n>1) solCar.timer=setInterval(()=>{ solCar.i=(solCar.i+1)%solCar.slots.length; mostrarSol(solCar.i,true); },tempo);
+}
+
+function solParar(){
+  clearInterval(solCar.timer);
+  solCar.timer=null; solCar.rodando=false;
+}
+
+function mostrarSol(i,animar){
+  const slot=solCar.slots[i]; if(!slot) return;
+  const d=solCar.deptos[slot.k], dest=el("solDest");
+  el("solDNome").textContent=slot.paginas>1?`${d.depto} (${slot.p+1}/${slot.paginas})`:d.depto;
+  const selo=el("solDSelo");
+  if(d.sem){ selo.className="dSelo atraso"; selo.textContent=`⚠ ${fmt(d.sem)} sem resposta`; }
+  else { selo.className="dSelo ok"; selo.textContent="✓ Todas respondidas"; }
+  dest.classList.toggle("alert",d.sem>0);
+  el("solDResumo").innerHTML=[
+    `<span><b>${fmt(d.abertas)}</b> em aberto</span>`,
+    `<span${d.ext?' class="r"':""}><b class="${d.ext?"c-red":""}">${fmt(d.ext)}</b> externas sem resposta</span>`,
+    `<span${d.int?' class="r"':""}><b class="${d.int?"c-red":""}">${fmt(d.int)}</b> internas sem resposta</span>`,
+    d.sem?`<span>mais antiga: <b class="${d.antiga>3?"c-red":""}">${d.antiga?`${fmt(d.antiga)} ${dias(d.antiga)}`:"hoje"}</b></span>`:"",
+  ].join("");
+  const pag=d.pend.slice(slot.p*SOL_POR_PAGINA,(slot.p+1)*SOL_POR_PAGINA);
+  el("solTabela").innerHTML=pag.length?pag.map((x,k)=>{
+    const f=x.horas<24?"f1":x.horas<=72?"f2":"f3";
+    return `<div class="solReq ${f}" style="--d:${.3+k*.06}s"><span class="id">#${escapeHtml(x.id)}</span>
+      <span class="cli">${escapeHtml(x.cliente||"—")}</span><em>${espera(x.horas)}<small>${x.tipo}</small></em></div>`;
+  }).join(""):`<div class="solOk" style="grid-column:1/-1">✓ Nenhuma solicitação esperando resposta</div>`;
+  document.querySelectorAll("#solDeptos .opItem").forEach((n,k)=>n.classList.toggle("ativo",k===slot.k));
+  document.querySelectorAll("#solFila .chip").forEach((n,k)=>n.classList.toggle("ativa",k===slot.k));
+  if(animar){
+    dest.classList.remove("entra"); void dest.offsetWidth; dest.classList.add("entra");
+    const b=el("solBarra"); b.classList.remove("rodando"); void b.offsetWidth; b.classList.add("rodando");
+  }
 }
 
 /* =============================================
    TELAS
 ============================================= */
 // Ordem do rodízio; uma tela sem dados (json ausente ou com erro) é pulada.
-const TELAS=["operacional","csat","solicitacoes"];
+const TELAS=["operacional","solicitacoes","csat"];
 const SECAO={operacional:"telaOperacional",csat:"telaCsat",solicitacoes:"telaSol"};
 let telaAtual="operacional", csatOk=false, solOk=false;
 const disponivel=(t)=>t==="operacional"||(t==="csat"&&csatOk)||(t==="solicitacoes"&&solOk);
@@ -1028,7 +1089,7 @@ function mostrarTela(t){
   if(mudou){
     if(t==="csat") carrosselIniciar(); else carrosselParar();
     if(t==="operacional") opIniciar(); else opParar();
-    if(t==="solicitacoes") solAnimar();
+    if(t==="solicitacoes") solIniciar(); else solParar();
   }
   for(const x of TELAS) el(SECAO[x]).classList.toggle("oculta",x!==t);
   const lista=TELAS.filter(disponivel);
