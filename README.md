@@ -1,6 +1,6 @@
 # Painel TV — Conta Junto
 
-Painel para a TV com duas telas que se alternam a cada 2 minutos:
+Painel para a TV com três telas que se alternam a cada 2 minutos:
 
 1. **Painel Operacional**: entregas (obrigações e tarefas) do mês por departamento, vindas do Acessórias.
    No topo, os números do escritório no mês; no centro, um departamento em destaque por vez (rosca,
@@ -13,9 +13,14 @@ Painel para a TV com duas telas que se alternam a cada 2 minutos:
    no centro, os comentários passando um a um (9 s cada), com o setor que atendeu; à direita, o quadro
    por setor (nota média e avaliações ÷ atendimentos encerrados) e o alerta de notas de 1 a 3.
 
-- `index.html`: o painel. Lê o `dados.json` e o `csat.json` a cada minuto.
+3. **Solicitações sem resposta**: solicitações em aberto no Acessórias (Nova, Resolvendo, Cliente) em que a
+   última mensagem não é nossa, separadas em externas (clientes) e internas (equipe), por departamento e
+   tempo de espera (até 1 dia, 1 a 3 dias, mais de 3 dias). Só contagens: sem cliente, assunto ou número.
+
+- `index.html`: o painel. Lê o `dados.json`, o `csat.json` e o `solicitacoes.json` a cada minuto.
 - `sincronizar.py`: busca as entregas na API do Acessórias e gera o `dados.json`.
 - `csat.py`: busca as avaliações no Bradial e no Acessórias e gera o `csat.json`.
+- `solicitacoes.py`: busca as solicitações em aberto no Acessórias e gera o `solicitacoes.json`.
 - `.github/workflows/painel.yml`: roda os dois a cada 10 min e publica no GitHub Pages.
 - `.github/workflows/manter-ativo.yml`: commit vazio mensal para o GitHub não desligar a rotina.
 
@@ -34,13 +39,14 @@ Taxa de resposta = avaliações ÷ (pesquisas enviadas no WhatsApp + solicitaç�
 
 Link do painel: `https://<usuario>.github.io/<repositorio>/`
 
-Para testar as telas: `?tela=csat` fixa a tela de CSAT; `?rotacao=10` troca a cada 10 segundos.
+Para testar as telas: `?tela=csat` ou `?tela=solicitacoes` fixa uma tela; `?rotacao=10` troca a cada 10 segundos.
 
 ## Rodar localmente
 
 ```
 python sincronizar.py
 python csat.py
+python solicitacoes.py
 python -m http.server 8770
 ```
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>Conta Junto — Dashboard TV (v33)</title>
+  <title>Conta Junto — Dashboard TV (v34)</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -93,7 +93,7 @@
     .diag p{margin:0;}
     .diag code{display:block; margin-top:calc(var(--u)*.4); font-family:monospace; background:rgba(0,0,0,.05); padding:calc(var(--u)*.4); border-radius:4px;}
 
-    /* =========== TELAS (operacional / CSAT), alternadas a cada 2 min =========== */
+    /* =========== TELAS (operacional / CSAT / solicitações), alternadas a cada 2 min =========== */
     main{position:relative;}
     .tela{position:absolute; inset:0; transition:opacity .8s ease, visibility .8s;}
     .tela.oculta{opacity:0; visibility:hidden;}
@@ -103,7 +103,7 @@
     .telaDots.sem-csat{display:none;}
 
     /* ---- Satisfação do Cliente: números no topo, comentários um a um, quadro por setor ---- */
-    #telaCsat, #telaOperacional{
+    #telaCsat, #telaOperacional, #telaSol{
       /* cores do manual da marca (modelo "Avaliações na TV") */
       --grafite:#3C3D3D; --azul-claro:#0896F7; --azul-medio:#0F74B9;
       --estrela:#F5B301; --estrela-vazia:rgba(60,61,61,.15); --suave:rgba(60,61,61,.7);
@@ -319,6 +319,30 @@
     .destaque.entra .dNums{animation:csSobe .6s ease-out .3s both;}
     .destaque.entra .dGraf{animation:csSobe .6s ease-out .45s both;}
 
+    /* ---- Solicitações sem resposta: externas (clientes) × internas (equipe) ---- */
+    .sol{height:100%; min-height:0; display:grid; grid-template-rows:auto 1fr auto; gap:calc(var(--u)*.8);}
+    .solPlacar{grid-template-columns:repeat(4,1fr);}
+    .solPalco{min-height:0; display:grid; grid-template-columns:1fr 1fr; gap:calc(var(--u)*1.2);}
+    .setores.solQuadro{grid-column:auto; grid-row:auto;}
+    .solQuadro h2 b{color:var(--grafite); margin-left:.3em;}
+    .solLista{flex:1; display:flex; flex-direction:column; gap:calc(var(--u)*.9); min-height:0;}
+    .solItem{border-top:1px solid rgba(60,61,61,.08); padding-top:calc(var(--u)*.8);}
+    .solItem:first-child{border-top:0; padding-top:0;}
+    .solTopo{display:flex; justify-content:space-between; align-items:baseline; gap:calc(var(--u)*.6);}
+    .solDepto{font-size:calc(var(--f)*1.6); font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+    .solNum{font-size:calc(var(--f)*2.4); font-weight:900; line-height:1;}
+    .solNum.zero{color:var(--green); font-size:calc(var(--f)*1.4);}
+    .solBarra{display:flex; gap:2px; height:calc(var(--u)*1.1); margin-top:calc(var(--u)*.45); background:rgba(60,61,61,.08); border-radius:99em; overflow:hidden;}
+    .solBarra i{display:block; height:100%; width:0; transition:width 1.2s cubic-bezier(.22,1,.36,1);}
+    .solBarra i.f1{background:var(--teal);} .solBarra i.f2{background:var(--amber);} .solBarra i.f3{background:var(--red);}
+    .solInfo{margin-top:calc(var(--u)*.35); font-size:calc(var(--f)*1.05); font-weight:700; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+    .solInfo .r{color:var(--red);}
+    .solVazio{flex:1; display:flex; align-items:center; justify-content:center; text-align:center; font-size:calc(var(--f)*1.6); font-weight:800; color:var(--green);}
+    .solLegenda{display:flex; justify-content:center; gap:calc(var(--u)*2.4); font-size:calc(var(--f)*1.05); font-weight:700; color:var(--muted);}
+    .solLegenda span::before{content:""; display:inline-block; width:calc(var(--u)*.9); height:calc(var(--u)*.9); border-radius:3px; background:var(--cor); margin-right:calc(var(--u)*.4); vertical-align:-.1em;}
+    .sol.entra .kpi{animation:csSobe .5s ease-out both;}
+    .sol.entra .solItem{animation:csSobe .6s ease-out both; animation-delay:var(--d,0s);}
+
     /* Entrada animada de cada comentário */
     .cena.entra .avatar{animation:csPopAvatar .7s cubic-bezier(.34,1.56,.64,1) both;}
     .cena.entra .nome, .cena.entra .origem{animation:csSobe .6s ease-out .25s both;}
@@ -348,6 +372,10 @@
       .dInfo{width:100%;}
       .dNums{grid-template-columns:repeat(3,1fr);}
       .fila{flex-wrap:wrap;}
+      .sol{grid-template-rows:none;}
+      .solPlacar{grid-template-columns:repeat(2,1fr);}
+      .solPalco{grid-template-columns:1fr;}
+      .solLegenda{flex-wrap:wrap; gap:calc(var(--u)*.6) calc(var(--u)*1.6);}
       .tela{position:static;}
       .tela.oculta{display:none;}
       .csat, .csat.vazio{grid-template-rows:none;}
@@ -372,7 +400,7 @@
         </div>
       </div>
       <div class="rightHeader">
-        <div class="pill telaDots sem-csat" id="telaDots" aria-hidden="true"><span class="on"></span><span></span></div>
+        <div class="pill telaDots sem-csat" id="telaDots" aria-hidden="true"><span class="on"></span></div>
         <div class="pill">🕒 <span id="clock">--:--:--</span></div>
         <div class="pill"><span class="dot" id="loadDot"></span><span id="loadLabel">Carregando...</span></div>
       </div>
@@ -455,6 +483,33 @@
           </div>
         </div>
       </section>
+      <section class="tela oculta" id="telaSol">
+        <div class="sol" id="solGrid">
+          <div class="placar solPlacar">
+            <div class="kpi"><div><small>Externas sem resposta</small><div class="linha"><b id="solExt">—</b></div><div class="kpiSub" id="solExtSub"></div></div></div>
+            <div class="kpi"><div><small>Internas sem resposta</small><div class="linha"><b id="solInt">—</b></div><div class="kpiSub" id="solIntSub"></div></div></div>
+            <div class="kpi" id="solKpiVelhas"><div><small>Esperando há mais de 3 dias</small><div class="linha"><b class="c-red" id="solMais3">—</b></div><div class="kpiSub">externas e internas</div></div></div>
+            <div class="kpi"><div><small>Mais antiga sem resposta</small><div class="linha"><b id="solAntiga">—</b><em id="solAntigaUn"></em></div><div class="kpiSub" id="solAntigaSub"></div></div></div>
+          </div>
+          <div class="solPalco">
+            <section class="setores solQuadro">
+              <h2>Externas · clientes<b id="solExtTit"></b></h2>
+              <div class="legenda">A última mensagem é do cliente: falta a nossa resposta</div>
+              <div class="solLista" id="solListaExt"></div>
+            </section>
+            <section class="setores solQuadro">
+              <h2>Internas · equipe<b id="solIntTit"></b></h2>
+              <div class="legenda">A última mensagem não é do responsável: falta a resposta dele</div>
+              <div class="solLista" id="solListaInt"></div>
+            </section>
+          </div>
+          <div class="solLegenda">
+            <span style="--cor:var(--teal)">até 1 dia esperando</span>
+            <span style="--cor:var(--amber)">1 a 3 dias</span>
+            <span style="--cor:var(--red)">mais de 3 dias</span>
+          </div>
+        </div>
+      </section>
     </main>
 
     <footer>
@@ -477,10 +532,12 @@
 const DADOS_URL = "dados.json";
 // csat.json junta as avaliações do Bradial (WhatsApp) e do Acessórias; gerado pelo csat.py, na mesma rotina.
 const CSAT_URL = "csat.json";
+// solicitacoes.json: solicitações em aberto sem resposta nossa; gerado pelo solicitacoes.py, na mesma rotina.
+const SOL_URL = "solicitacoes.json";
 const REFRESH_MS = 60 * 1000;
 // Sem atualização há mais que isso, o painel avisa que a rotina do GitHub parou.
 const DESATUALIZADO_MS = 45 * 60 * 1000;
-// Troca entre o Painel Operacional e o CSAT. Para testar: ?tela=csat fixa uma tela, ?rotacao=10 (segundos).
+// Troca entre as telas a cada 2 min. Para testar: ?tela=csat ou ?tela=solicitacoes fixa uma tela, ?rotacao=10 (segundos).
 const PARAMS = new URLSearchParams(location.search);
 const TELA_FIXA = PARAMS.get("tela");
 const ROTACAO_MS = (Number(PARAMS.get("rotacao")) || 120) * 1000;
@@ -876,28 +933,107 @@ function proximoComentario(){
 }
 
 /* =============================================
+   SOLICITAÇÕES SEM RESPOSTA (solicitacoes.json)
+============================================= */
+async function loadSolicitacoes(){
+  const res=await fetch(`${SOL_URL}?t=${Date.now()}`,{cache:"no-store"});
+  if(!res.ok) throw new Error(`solicitacoes.json: HTTP ${res.status}`);
+  return await res.json();
+}
+
+const dias=(n)=>n===1?"dia":"dias";
+
+function solLista(alvo,g){
+  const deptos=(g?.por_depto||[]).filter(d=>d.abertas);
+  if(!g||!g.sem_resposta){
+    alvo.innerHTML=`<div class="solVazio">✓ Nenhuma solicitação sem resposta</div>`;
+    return;
+  }
+  const maior=Math.max(1,...deptos.map(d=>d.sem_resposta));
+  alvo.innerHTML=deptos.map((d,k)=>{
+    const f=d.faixas||{}, w=(n)=>`${(n||0)/maior*100}%`;
+    const info=d.sem_resposta
+      ?`de ${fmt(d.abertas)} em aberto · mais antiga: <span class="${(d.mais_antiga_dias||0)>3?"r":""}">${d.mais_antiga_dias?`${fmt(d.mais_antiga_dias)} ${dias(d.mais_antiga_dias)}`:"hoje"}</span>`
+      :`${fmt(d.abertas)} em aberto, todas respondidas`;
+    return `<div class="solItem" style="--d:${.15+k*.08}s">
+      <div class="solTopo"><span class="solDepto">${escapeHtml(d.depto)}</span><b class="solNum${d.sem_resposta?"":" zero"}">${d.sem_resposta?fmt(d.sem_resposta):"✓ 0"}</b></div>
+      <div class="solBarra"><i class="f1" data-w="${w(f.ate1)}"></i><i class="f2" data-w="${w(f.de1a3)}"></i><i class="f3" data-w="${w(f.mais3)}"></i></div>
+      <div class="solInfo">${info}</div></div>`;
+  }).join("");
+}
+
+function solBarras(animar){
+  const barras=document.querySelectorAll("#telaSol .solBarra i");
+  const aplicar=()=>barras.forEach(b=>{ b.style.width=b.dataset.w; });
+  if(animar){ barras.forEach(b=>{ b.style.width="0"; }); setTimeout(aplicar,350); } else aplicar();
+}
+
+function renderSolicitacoes(s){
+  const ext=s.externas||{}, int=s.internas||{};
+  el("solExt").textContent=fmt(ext.sem_resposta);
+  el("solExtSub").textContent=`de ${fmt(ext.abertas)} externas em aberto`;
+  el("solInt").textContent=fmt(int.sem_resposta);
+  el("solIntSub").textContent=`de ${fmt(int.abertas)} internas em aberto`;
+  el("solExt").className=ext.sem_resposta?"c-amber":"c-green";
+  el("solInt").className=int.sem_resposta?"c-amber":"c-green";
+  const mais3=(ext.faixas?.mais3||0)+(int.faixas?.mais3||0);
+  el("solMais3").textContent=fmt(mais3);
+  el("solMais3").className=mais3?"c-red":"c-green";
+  el("solKpiVelhas").classList.toggle("alerta",mais3>0);
+
+  // Mais antiga: qual departamento e se é externa ou interna
+  const candidatos=[["externa",ext],["interna",int]].flatMap(([tipo,g])=>(g.por_depto||[])
+    .filter(d=>d.sem_resposta).map(d=>({tipo,depto:d.depto,dias:d.mais_antiga_dias||0})));
+  const velha=candidatos.sort((a,b)=>b.dias-a.dias)[0];
+  if(!velha){ el("solAntiga").textContent="—"; el("solAntigaUn").textContent=""; el("solAntigaSub").textContent="nenhuma esperando"; }
+  else{
+    el("solAntiga").textContent=velha.dias?fmt(velha.dias):"hoje";
+    el("solAntigaUn").textContent=velha.dias?dias(velha.dias):"";
+    el("solAntiga").className=velha.dias>3?"c-red":velha.dias>=1?"c-amber":"c-teal";
+    el("solAntigaSub").textContent=`${velha.depto} · ${velha.tipo}`;
+  }
+  el("solExtTit").textContent=ext.sem_resposta?`· ${fmt(ext.sem_resposta)}`:"";
+  el("solIntTit").textContent=int.sem_resposta?`· ${fmt(int.sem_resposta)}`:"";
+  solLista(el("solListaExt"),ext);
+  solLista(el("solListaInt"),int);
+  solBarras(false);
+}
+
+function solAnimar(){
+  const g=el("solGrid");
+  g.classList.remove("entra"); void g.offsetWidth; g.classList.add("entra");
+  solBarras(true);
+}
+
+/* =============================================
    TELAS
 ============================================= */
-let telaAtual="operacional", csatOk=false;
+// Ordem do rodízio; uma tela sem dados (json ausente ou com erro) é pulada.
+const TELAS=["operacional","csat","solicitacoes"];
+const SECAO={operacional:"telaOperacional",csat:"telaCsat",solicitacoes:"telaSol"};
+let telaAtual="operacional", csatOk=false, solOk=false;
+const disponivel=(t)=>t==="operacional"||(t==="csat"&&csatOk)||(t==="solicitacoes"&&solOk);
 const cabecalho={
   operacional:{titulo:"Conta Junto · Painel Operacional", sub:"Status das entregas por departamento", fonte:"Acessórias", info:"—", em:"—"},
   csat:{titulo:"Conta Junto · Satisfação do Cliente", sub:"Avaliações dos clientes no WhatsApp e no Acessórias", fonte:"Bradial (WhatsApp) + Acessórias", info:"—", em:"—"},
+  solicitacoes:{titulo:"Conta Junto · Solicitações sem resposta", sub:"Solicitações em aberto no Acessórias esperando a nossa resposta", fonte:"Acessórias",
+                info:"Externas (clientes) e internas (equipe) em que a última mensagem não é nossa", em:"—"},
 };
 
 function mostrarTela(t){
-  if(t==="csat"&&!csatOk) t="operacional";
+  if(!disponivel(t)) t="operacional";
   const mudou=t!==telaAtual;
   telaAtual=t;
-  // Os comentários recomeçam do primeiro sempre que a tela de CSAT entra.
+  // Cada tela recomeça a animação sempre que entra.
   if(mudou){
     if(t==="csat") carrosselIniciar(); else carrosselParar();
     if(t==="operacional") opIniciar(); else opParar();
+    if(t==="solicitacoes") solAnimar();
   }
-  el("telaOperacional").classList.toggle("oculta",t!=="operacional");
-  el("telaCsat").classList.toggle("oculta",t!=="csat");
-  const dots=el("telaDots").children;
-  dots[0].classList.toggle("on",t==="operacional");
-  dots[1].classList.toggle("on",t==="csat");
+  for(const x of TELAS) el(SECAO[x]).classList.toggle("oculta",x!==t);
+  const lista=TELAS.filter(disponivel);
+  el("telaDots").innerHTML=lista.map(x=>`<span class="${x===t?"on":""}"></span>`).join("");
+  el("telaDots").classList.toggle("sem-csat",lista.length<2);
   const h=cabecalho[t];
   el("titulo").textContent=h.titulo;
   el("subtitulo").textContent=h.sub;
@@ -908,7 +1044,8 @@ function mostrarTela(t){
 
 function rodarTela(){
   if(TELA_FIXA) return;
-  mostrarTela(telaAtual==="operacional"?"csat":"operacional");
+  const lista=TELAS.filter(disponivel);
+  mostrarTela(lista[(lista.indexOf(telaAtual)+1)%lista.length]);
 }
 
 /* =============================================
@@ -929,6 +1066,16 @@ async function loadAll(){
     csatOk=true;
   }).catch(()=>{ csatOk=false; });
 
+  // Solicitações sem resposta: também opcional, falha isolada.
+  const sol=loadSolicitacoes().then(d=>{
+    renderSolicitacoes(d);
+    const em=new Date(d.atualizado_em);
+    const total=(d.externas?.abertas||0)+(d.internas?.abertas||0);
+    cabecalho.solicitacoes.sub=`Solicitações em aberto no Acessórias esperando a nossa resposta · ${fmt(total)} em aberto`;
+    cabecalho.solicitacoes.em=`${brDate(em)}, ${brTime(em)}`;
+    solOk=true;
+  }).catch(()=>{ solOk=false; });
+
   try{
     const tasks=await loadAcessorias();
     const metrics=computeTaskMetrics(Object.values(tasks.entregas||{}));
@@ -947,9 +1094,8 @@ async function loadAll(){
     showDiag(true,err.msg||String(err),err.url||DADOS_URL);
   }
 
-  await csat;
-  el("telaDots").classList.toggle("sem-csat",!csatOk);
-  mostrarTela(TELA_FIXA==="csat"?"csat":telaAtual);
+  await Promise.all([csat,sol]);
+  mostrarTela(TELAS.includes(TELA_FIXA)?TELA_FIXA:telaAtual);
 }
 
 /* =============================================
