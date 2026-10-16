@@ -30,7 +30,9 @@ from pathlib import Path
 sys.stdout.reconfigure(encoding="utf-8")
 
 RAIZ = Path(__file__).resolve().parent.parent
-VERSAO = 2
+VERSAO = 3
+# Status do Acessórias na ordem da tela; "Nova" fica em destaque.
+STATUS_MES = ("Nova", "Resolvendo", "Cliente", "Finalizada")
 ACESSORIAS = "https://api.acessorias.com"
 # Limite do Acessórias é 100/min, dividido com o sincronizar.py, o csat.py, o MCP e o P.I.V.O.
 PAUSA = 0.8
@@ -150,6 +152,7 @@ def main():
     log(f"{len(sols)} solicitações em aberto; {len(equipe)} nomes na equipe.")
 
     saida = {chave: {**novo_grupo(), "por_depto": {}} for chave in TIPOS.values()}
+    sem_resposta = set()
     for resumo in sols.values():
         chave = TIPOS.get(resumo.get("SolTipo"))
         if not chave:
@@ -166,6 +169,7 @@ def main():
             horas = max(0.0, (agora - desde).total_seconds() / 3600)
             somar(grupo, horas)
             somar(depto, horas)
+            sem_resposta.add(str(resumo["SolID"]))
             depto["pendentes"].append({"id": str(resumo["SolID"]),
                                        "cliente": (sol.get("EmpNome") or resumo.get("EmpNome") or "").strip(),
                                        "horas": round(horas, 1)})
@@ -176,12 +180,37 @@ def main():
         grupo["por_depto"] = sorted(({"depto": d, **g} for d, g in grupo["por_depto"].items()),
                                     key=lambda x: (-x["sem_resposta"], -(x["mais_antiga_dias"] or 0), -x["abertas"], x["depto"]))
 
-    dados = {"fonte": "Acessórias", "versao": VERSAO, "atualizado_em": agora.isoformat(), **saida}
+    # Mês: solicitações abertas no mês, por departamento e status; respondida = não está esperando por nós.
+    ini_mes = agora.date().replace(day=1)
+    mes = {}
+    for s in listar("requests/ListAll", SolAberturaIni=ini_mes.isoformat()):
+        if s.get("SolTipo") not in TIPOS:
+            continue
+        d = mes.setdefault(depto_pai(s.get("DptoNome")), {"total": 0, "respondidas": 0, "nao_respondidas": 0,
+                                                        "externas": 0, "internas": 0,
+                                                        "status": {st: 0 for st in STATUS_MES}})
+        d["total"] += 1
+        d["externas" if s["SolTipo"] == "Externa" else "internas"] += 1
+        st = s.get("SolStatus") or ""
+        d["status"][st] = d["status"].get(st, 0) + 1
+        d["nao_respondidas" if str(s["SolID"]) in sem_resposta else "respondidas"] += 1
+    total_mes = {"total": 0, "respondidas": 0, "nao_respondidas": 0, "status": {st: 0 for st in STATUS_MES}}
+    for d in mes.values():
+        for k in ("total", "respondidas", "nao_respondidas"):
+            total_mes[k] += d[k]
+        for st, n in d["status"].items():
+            total_mes["status"][st] = total_mes["status"].get(st, 0) + n
+
+    dados = {"fonte": "Acessórias", "versao": VERSAO, "atualizado_em": agora.isoformat(), **saida,
+             "mes": {"inicio": ini_mes.isoformat(), **total_mes,
+                     "por_depto": [{"depto": k, **v} for k, v in sorted(mes.items(), key=lambda x: -x[1]["total"])]}}
     Path(a.saida).write_text(json.dumps(dados, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     for chave in TIPOS.values():
         g = saida[chave]
         log(f"{a.saida}: {chave} {g['sem_resposta']} sem resposta de {g['abertas']} abertas "
             f"(faixas {g['faixas']}, mais antiga {g['mais_antiga_dias']} dias).")
+    log(f"Mês {ini_mes:%m/%Y}: {total_mes['total']} abertas, {total_mes['respondidas']} respondidas, "
+        f"{total_mes['nao_respondidas']} sem resposta, status {total_mes['status']}.")
 
 
 if __name__ == "__main__":

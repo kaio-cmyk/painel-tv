@@ -29,7 +29,8 @@ Ordem do rodízio: Painel Operacional → Solicitações sem resposta → Satisf
 
 O `dados.json` publicado só tem departamento, prazo e situação de cada entrega. O `csat.json` só tem
 números, notas, comentários (como o cliente escreveu, inclusive o nome do colaborador que ele citou),
-data e canal: sem ranking por colaborador e nunca o nome, o telefone ou a empresa do cliente.
+data, canal e o nome do cliente (empresa no Acessórias, primeiro nome no WhatsApp; pedido do Kaio em
+16/10/2026): sem ranking por colaborador e nunca o telefone do cliente.
 Taxa de resposta = avaliações ÷ (pesquisas enviadas no WhatsApp + solicitações externas finalizadas).
 
 ## Configuração

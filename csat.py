@@ -7,8 +7,9 @@ Roda no GitHub Actions junto com o sincronizar.py (.github/workflows/painel.yml)
   python csat.py [--saida csat.json]
 
 Mês atual (até hoje) e mês anterior inteiro. O arquivo publicado leva números, nota, comentário
-(como o cliente escreveu, com o nome do colaborador se ele citou), data e canal. Nada de nome ou
-telefone do cliente, empresa, nem número de conversa ou de solicitação. Se um canal falhar, o
+(como o cliente escreveu, com o nome do colaborador se ele citou), data, canal e o nome do cliente
+(pedido do Kaio em 16/10/2026: empresa no Acessórias, primeiro nome do contato no WhatsApp). Nunca
+telefone, número de conversa ou de solicitação. Se um canal falhar, o
 arquivo sai só com o outro (campo "canais" diz quais entraram).
 
 Chaves: BRADIAL_API_KEY e ACESSORIAS_TOKEN; localmente, caem para
@@ -30,9 +31,9 @@ from pathlib import Path
 sys.stdout.reconfigure(encoding="utf-8")
 
 RAIZ = Path(__file__).resolve().parent.parent
-VERSAO = 4
+VERSAO = 5
 # A TV passa os comentários um a um (~9 s cada) durante os 2 min da tela.
-MAX_COMENTARIOS = 10
+MAX_COMENTARIOS = 60
 MAX_TEXTO = 160
 
 # O WhatsApp (Bradial) é atendido só pelo Sucesso do Cliente.
@@ -124,8 +125,10 @@ def bradial(ini, fim):
             quando = datetime.fromisoformat(r["createdAt"].replace("Z", "+00:00")).astimezone().replace(tzinfo=None)
         except (KeyError, AttributeError, ValueError):
             quando = datetime.combine(ini, datetime.min.time())
+        nome = (r.get("contactName") or r.get("respondentName") or "").strip().split()
         avaliacoes.append({"nota": int(r["rating"]), "texto": texto_limpo(r.get("feedbackMessage")),
-                           "quando": quando, "canal": "WhatsApp", "setor": SETOR_WHATSAPP})
+                           "quando": quando, "canal": "WhatsApp", "setor": SETOR_WHATSAPP,
+                           "cliente": nome[0].capitalize() if nome else ""})
 
     enviadas = None
     try:
@@ -168,7 +171,7 @@ def acessorias(ini, fim):
     # A avaliação muda a data de última atualização, então quem avaliou no período está nesta lista.
     sols = [s for s in listar("requests/ListAll", SolUltAtIni=ini.isoformat(), SolUltAtFim=fim.isoformat())
             if s.get("SolTipo") == "Externa"]
-    finalizadas = [(d, s.get("DptoNome") or "Sem setor")
+    finalizadas = [(d, re.split(r"\s+[-–]\s+", s.get("DptoNome") or "Sem setor")[0])
                    for s in sols if (d := data_br(s.get("SolDHFinalizacao")))]
 
     # Nota dada por alguém do escritório não é avaliação de cliente.
@@ -194,7 +197,9 @@ def acessorias(ini, fim):
             comentario = re.sub(r"^[\s'\"]*(Coment[aá]rio:)?\s*", "", m.group(2))
             avaliacoes.append({"nota": int(m.group(1)), "texto": texto_limpo(comentario),
                                "quando": data_br(c.get("CmtDH")) or data_br(s.get("SolDHUAt")),
-                               "canal": "Acessórias", "setor": det.get("DptoNome") or s.get("DptoNome") or "Sem setor"})
+                               "canal": "Acessórias",
+                               "setor": re.split(r"\s+[-–]\s+", det.get("DptoNome") or s.get("DptoNome") or "Sem setor")[0],
+                               "cliente": (det.get("EmpNome") or s.get("EmpNome") or "").strip()})
     return avaliacoes, finalizadas
 
 
@@ -233,16 +238,21 @@ def resumo(ini, fim, avals, oport, com_comentarios):
         "por_canal": {c: {"respostas": len(l), "media": media(l)} for c, l in canais.items()},
         "por_setor": sorted(
             ({"setor": st, "canal": v["canal"], "respostas": len(v["notas"]), "media": media(v["notas"]),
+              "satisfeitos": sum(n >= 4 for n in v["notas"]),
               "satisfeitos_pct": pct(sum(n >= 4 for n in v["notas"]), len(v["notas"])),
+              "distribuicao": {str(i): v["notas"].count(i) for i in range(1, 6)},
               "oportunidades": oport.get(st) or None,
               "taxa_resposta": round(len(v["notas"]) / oport[st], 4) if oport.get(st) else None}
              for st, v in setores.items()),
             key=lambda x: (-x["respostas"], -(x["oportunidades"] or 0), x["setor"])),
     }
     if com_comentarios:
-        com_texto = sorted((a for a in avals if a["texto"]), key=lambda a: a["quando"], reverse=True)
+        # Primeiro as que têm comentário, depois as só com nota (o Acessórias quase sempre vem sem texto).
+        com_texto = (sorted((a for a in avals if a["texto"]), key=lambda a: a["quando"], reverse=True)
+                     + sorted((a for a in avals if not a["texto"]), key=lambda a: a["quando"], reverse=True))
         out["comentarios"] = [{"nota": a["nota"], "texto": a["texto"], "data": a["quando"].date().isoformat(),
-                               "canal": a["canal"], "setor": a["setor"]} for a in com_texto[:MAX_COMENTARIOS]]
+                               "canal": a["canal"], "setor": a["setor"], "cliente": a.get("cliente", "")}
+                              for a in com_texto[:MAX_COMENTARIOS]]
     return out
 
 

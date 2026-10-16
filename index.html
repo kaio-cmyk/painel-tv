@@ -3,352 +3,309 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>Conta Junto — Dashboard TV (v35)</title>
-
+  <title>Conta Junto — Dashboard TV (v40)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-
+  <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
   <style>
+    /* Sistema visual das 3 telas (skill frontend-design + manual da marca Conta Junto):
+       à esquerda um bloco grande com o número que importa (grafite em dia, vermelho com problema,
+       azul na satisfação); à direita um painel branco de apoio; embaixo a fila que roda. */
     :root{
-      /* 1u ≈ 1% da largura numa tela 16:9 (19px em Full HD, 38px em 4K): tudo escala junto */
+      /* 1u ≈ 1% da largura numa tela 16:9: tudo escala junto */
       --u: min(1vw, 1.778vh);
-      --f: calc(var(--u)*.88); /* unidade das letras: 12% menor que a das medidas */
-      --stroke:rgba(15,23,42,.08);
-      --text:#0f172a;
-      --muted:#64748b;
-      --blue:#2563eb;
-      --green:#16a34a;
-      --red:#dc2626;
-      --amber:#d97706;
-      --teal:#0d9488;
-      --shadow: 0 2px 6px -1px rgba(15,23,42,.10);
-      --card-bg:#ffffff;
+      --f: calc(var(--u)*.88);
+      --grafite:#3C3D3D; --alerta:#C62828; --azul:#0F74B9; --vivo:#0F37F5; --claro:#0896F7; --nota:#EAF5FE;
+      --verde:#1E8E3E; --ambar:#C77700; --agua:#0E8F86; --fundo:#EDF0F3; --texto:#2B2C2C; --suave:rgba(60,61,61,.62);
     }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{
-      margin:0; font-family:Inter,system-ui,-apple-system,sans-serif;
-      background:#eef2f7; color:var(--text);
-      overflow:hidden;
-      -webkit-font-smoothing:antialiased;
-      font-variant-numeric: tabular-nums;
-    }
+    body{margin:0; background:var(--fundo); color:var(--texto); font-family:Nunito,system-ui,sans-serif; overflow:hidden;
+      -webkit-font-smoothing:antialiased; font-variant-numeric:tabular-nums;}
+    .display{font-family:Comfortaa,Nunito,sans-serif; font-weight:700;}
 
-    .wrap{
-      height:100%; padding:calc(var(--u)*.8);
-      display:grid;
-      grid-template-rows:calc(var(--u)*3.8) 1fr calc(var(--u)*1.2);
-      gap:calc(var(--u)*.7);
-    }
-
-    header{
-      display:flex; align-items:center; justify-content:space-between;
-      padding:0 calc(var(--u)*1.2);
-      background:var(--card-bg);
-      border:1px solid var(--stroke); border-radius:calc(var(--u)*.8); box-shadow:var(--shadow);
-    }
-    .brand{display:flex; gap:calc(var(--u)*.7); align-items:center;}
-    .logo{
-      width:calc(var(--u)*2.3); height:calc(var(--u)*2.3); border-radius:calc(var(--u)*.5);
-      background:linear-gradient(135deg, var(--blue), #3b82f6);
-    }
-    .brand h1{margin:0; font-size:calc(var(--f)*1.5); line-height:1.1; letter-spacing:-.01em; color:#1e293b;}
-    .brand .sub{font-size:calc(var(--f)*.85); color:var(--muted); font-weight:600;}
-
-    .rightHeader{display:flex; align-items:center; gap:calc(var(--u)*.6);}
-    .pill{
-      display:flex; align-items:center; gap:calc(var(--u)*.45);
-      padding:calc(var(--u)*.35) calc(var(--u)*.8); border-radius:calc(var(--u)*.4);
-      background:#f1f5f9; border:1px solid var(--stroke);
-      font-weight:700; font-size:calc(var(--f)*1.05); color:#334155;
-    }
-    .dot{width:calc(var(--u)*.55); height:calc(var(--u)*.55); border-radius:50%;}
-    .dot.ok{background:var(--green); box-shadow:0 0 0 3px rgba(22,163,74,.18);}
-    .dot.bad{background:var(--red); box-shadow:0 0 0 3px rgba(220,38,38,.18);}
-    .dot.warn{background:var(--amber); box-shadow:0 0 0 3px rgba(217,119,6,.18);}
-
-    main{min-height:0;}
-    @keyframes bgPulse {
-      0%,100% { background-color:#fff; border-color:rgba(220,38,38,.35); }
-      50% { background-color:#fef2f2; border-color:rgba(220,38,38,1); }
-    }
-    @keyframes textFlash { 0%,100%{opacity:1} 50%{opacity:.65} }
-
-    footer{
-      display:flex; justify-content:space-between; align-items:center;
-      padding:0 calc(var(--u)*.5); color:#64748b; font-size:calc(var(--f)*.75); font-weight:600;
-    }
-
-    .diag{
-      position:absolute; left:calc(var(--u)*1); right:calc(var(--u)*1); bottom:calc(var(--u)*3); display:none;
-      padding:calc(var(--u)*.8); border-radius:calc(var(--u)*.6); border:1px solid #fca5a5;
-      background:#fef2f2; color:#991b1b; box-shadow:var(--shadow); z-index:999;
-      font-size:calc(var(--f)*.9);
-    }
-    .diag.show{display:block}
-    .diag h3{margin:0 0 calc(var(--u)*.3);}
-    .diag p{margin:0;}
-    .diag code{display:block; margin-top:calc(var(--u)*.4); font-family:monospace; background:rgba(0,0,0,.05); padding:calc(var(--u)*.4); border-radius:4px;}
-
-    /* =========== TELAS (operacional / CSAT / solicitações), alternadas a cada 2 min =========== */
-    main{position:relative;}
+    .wrap{height:100%; padding:calc(var(--u)*1.2) calc(var(--u)*1.4) calc(var(--u)*.6); display:grid; grid-template-rows:1fr auto; gap:calc(var(--u)*.6);}
+    main{position:relative; min-height:0;}
     .tela{position:absolute; inset:0; transition:opacity .8s ease, visibility .8s;}
     .tela.oculta{opacity:0; visibility:hidden;}
-    .telaDots{display:flex; gap:calc(var(--u)*.35); align-items:center;}
-    .telaDots span{width:calc(var(--u)*.55); height:calc(var(--u)*.55); border-radius:50%; background:#cbd5e1; transition:background .4s;}
-    .telaDots span.on{background:var(--blue);}
-    .telaDots.sem-csat{display:none;}
 
-    /* ---- Satisfação do Cliente: números no topo, comentários um a um, quadro por setor ---- */
-    #telaCsat, #telaOperacional, #telaSol{
-      /* cores do manual da marca (modelo "Avaliações na TV") */
+    /* Grade de cada tela */
+    .painel{height:100%; min-height:0; display:grid; grid-template-columns:1.45fr 1fr; grid-template-rows:1fr auto; gap:calc(var(--u)*1.2) calc(var(--u)*1.4);}
+
+    /* Bloco grande */
+    .hero{grid-column:1; grid-row:1; min-height:0; position:relative; overflow:hidden; color:#fff;
+      background:var(--grafite); border-radius:calc(var(--u)*1.6); padding:calc(var(--u)*2.4) calc(var(--u)*2.8) calc(var(--u)*2);
+      display:flex; flex-direction:column; transition:background-color .7s ease;}
+    .hero.alerta{background:var(--alerta);}
+    .hero.azul{background:var(--azul);}
+    .heroNome{font-family:Comfortaa,Nunito,sans-serif; font-weight:700; font-size:calc(var(--f)*3.6); line-height:1.05; letter-spacing:-.01em;}
+    .heroNome small{font-family:Nunito,sans-serif; font-size:.38em; font-weight:700; opacity:.72; margin-left:.6em; letter-spacing:0;}
+    .heroSelo{position:absolute; top:calc(var(--u)*2.6); right:calc(var(--u)*2.8); font-size:calc(var(--f)*1.25); font-weight:800;
+      background:rgba(255,255,255,.16); border-radius:99em; padding:calc(var(--u)*.35) calc(var(--u)*1.1);}
+    .heroGrande{display:flex; align-items:baseline; gap:calc(var(--u)*1.2); margin-top:auto;}
+    .heroGrande b{font-family:Comfortaa,Nunito,sans-serif; font-weight:700; font-size:calc(var(--f)*13); line-height:.9; letter-spacing:-.04em;}
+    .heroGrande b sup{font-size:.4em; vertical-align:.95em; margin-left:.05em;}
+    .heroGrande span{font-size:calc(var(--f)*2.2); font-weight:700; line-height:1.15; max-width:13em;}
+    .heroGrande span em{display:block; font-style:normal; font-size:.62em; font-weight:600; opacity:.78; margin-top:calc(var(--u)*.3);}
+    .heroGrande .estrelas{display:flex; gap:calc(var(--u)*.25); margin-bottom:calc(var(--u)*.4);}
+    .heroGrande .estrelas svg{width:calc(var(--u)*2.2); height:calc(var(--u)*2.2); fill:rgba(255,255,255,.28);}
+    .heroGrande .estrelas svg.cheia{fill:#FFD34D;}
+    .heroLinha{margin-top:calc(var(--u)*1.6); font-size:calc(var(--f)*1.45); font-weight:700;}
+    .heroLinha strong{font-family:Comfortaa,Nunito,sans-serif;}
+    .heroBarra{height:calc(var(--u)*.55); margin-top:calc(var(--u)*.6); background:rgba(255,255,255,.22); border-radius:99em; overflow:hidden;}
+    .heroBarra i{display:block; height:100%; width:0; background:#fff; border-radius:inherit; transition:width 1s cubic-bezier(.22,1,.36,1);}
+
+    .tiles{display:grid; gap:calc(var(--u)*.5); margin-top:calc(var(--u)*1.8); align-items:stretch;}
+    .tiles .seta{align-self:center; font-size:calc(var(--f)*1.5); opacity:.55;}
+    .tile{background:rgba(255,255,255,.12); border-radius:calc(var(--u)*.8); padding:calc(var(--u)*.7) calc(var(--u)*.9); min-width:0;}
+    .tile b{display:block; font-family:Comfortaa,Nunito,sans-serif; font-weight:700; font-size:calc(var(--f)*2.4); line-height:1.05;}
+    .tile span{font-size:calc(var(--f)*1.05); font-weight:700; opacity:.88; white-space:nowrap;}
+    .tile.zero b{opacity:.45;}
+    .tile.destaque{background:#fff; color:var(--vivo);}
+    .tile.destaque b{font-size:calc(var(--f)*3);}
+    .tile.destaque span{opacity:1;}
+    .tile.destaque.vermelho{color:var(--alerta);}
+
+    /* Faixa fixa do escritório (Painel Operacional) */
+    .oper{height:100%; min-height:0; display:grid; grid-template-rows:auto 1fr; gap:calc(var(--u)*1);}
+    .escritorio{display:grid; grid-template-columns:auto repeat(5,1fr); align-items:center; gap:calc(var(--u)*1.6);
+      background:#fff; border-radius:calc(var(--u)*1.2); padding:calc(var(--u)*1) calc(var(--u)*1.8);}
+    .escritorio h2{margin:0; font-family:Comfortaa,Nunito,sans-serif; font-weight:700; font-size:calc(var(--f)*1.8); color:var(--grafite);}
+    .escritorio div b{display:block; font-family:Comfortaa,Nunito,sans-serif; font-weight:700; font-size:calc(var(--f)*2.3); line-height:1.1; color:var(--azul);}
+    .escritorio div span{font-size:calc(var(--f)*1); font-weight:700; color:var(--suave);}
+    .escritorio div.neutro b{color:var(--grafite);}
+    /* Vermelho discreto: só um ponto ao lado do número */
+    .ponto{display:inline-block; width:.42em; height:.42em; border-radius:50%; background:var(--alerta); margin-left:.3em; vertical-align:.35em;}
+    .heroSelo .ponto{vertical-align:.1em; margin:0 .4em 0 0;}
+
+    /* Cartão do departamento (Painel Operacional): branco, rosca e os 5 números */
+    .opCard{grid-column:1; grid-row:1; min-height:0; display:flex; flex-direction:column; background:#fff; border-radius:calc(var(--u)*1.6);
+      padding:calc(var(--u)*2) calc(var(--u)*2.4);}
+    .opCardTopo{display:flex; justify-content:space-between; align-items:center; gap:calc(var(--u)*1);}
+    .opCardTopo h2{margin:0; font-family:Comfortaa,Nunito,sans-serif; font-weight:700; font-size:calc(var(--f)*3.2); color:var(--grafite);}
+    .opSelo{font-size:calc(var(--f)*1.25); font-weight:800; color:var(--grafite); background:var(--fundo); border-radius:99em; padding:calc(var(--u)*.35) calc(var(--u)*1.1); white-space:nowrap;}
+    .opSelo.ok{color:var(--verde); background:#E8F5EC;}
+    .opCorpo{flex:1; min-height:0; display:grid; grid-template-columns:auto 1fr; align-items:center; gap:calc(var(--u)*3);}
+    .rosca{position:relative; width:calc(var(--u)*26); height:calc(var(--u)*26);}
+    .rosca svg{width:100%; height:100%; transform:rotate(-90deg);}
+    .rosca circle{fill:none; stroke-width:14; transition:stroke-dasharray 1s cubic-bezier(.22,1,.36,1), stroke-dashoffset 1s cubic-bezier(.22,1,.36,1);}
+    .roscaCentro{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;}
+    .roscaCentro b{font-family:Comfortaa,Nunito,sans-serif; font-weight:700; font-size:calc(var(--f)*5.4); line-height:1; color:var(--verde);}
+    .roscaCentro span{font-size:calc(var(--f)*1.35); font-weight:800; color:var(--grafite); margin-top:calc(var(--u)*.3);}
+    .roscaCentro em{font-style:normal; font-size:calc(var(--f)*1.25); font-weight:800; color:var(--agua); margin-top:calc(var(--u)*.4);}
+    .legenda5{display:flex; flex-direction:column; gap:calc(var(--u)*.4);}
+    .leg{display:grid; grid-template-columns:auto 1fr auto auto; align-items:baseline; gap:calc(var(--u)*.9); padding:calc(var(--u)*.7) 0; border-top:1px solid rgba(60,61,61,.08);}
+    .leg:first-child{border-top:0;}
+    .leg i{width:calc(var(--u)*1.1); height:calc(var(--u)*1.1); border-radius:4px; background:var(--cor); align-self:center;}
+    .leg span{font-size:calc(var(--f)*1.5); font-weight:700; color:var(--grafite);}
+    .leg b{font-family:Comfortaa,Nunito,sans-serif; font-weight:700; font-size:calc(var(--f)*2.4); color:var(--grafite);}
+    .leg small{font-size:calc(var(--f)*1.1); font-weight:700; color:var(--suave); min-width:3.2em; text-align:right;}
+    .leg.zero b, .leg.zero span{opacity:.4;}
+    .leg.principal b{color:var(--verde);}
+    .opCard.entra .opCardTopo{animation:sobe .5s ease-out both;}
+    .opCard.entra .legenda5{animation:sobe .6s ease-out .15s both;}
+
+    /* Painel branco */
+    .lado{grid-column:2; grid-row:1; min-height:0; display:flex; flex-direction:column; background:#fff; border-radius:calc(var(--u)*1.6);
+      padding:calc(var(--u)*2) calc(var(--u)*2.2);}
+    .lado h3{margin:0 0 calc(var(--u)*.9); font-family:Comfortaa,Nunito,sans-serif; font-weight:700; font-size:calc(var(--f)*1.7); color:var(--grafite);}
+    .lado h3 b{color:var(--alerta); margin-left:.3em;}
+    .lado h3 small{font-family:Nunito,sans-serif; font-size:.62em; font-weight:700; color:var(--suave); margin-left:.5em;}
+    .bloco + .bloco{margin-top:calc(var(--u)*1.6); padding-top:calc(var(--u)*1.4); border-top:1px solid rgba(60,61,61,.1);}
+
+    /* Colunas por dia (Operacional) */
+    .colunas{display:grid; grid-template-columns:repeat(7,1fr); gap:calc(var(--u)*.7); height:calc(var(--u)*13);}
+    .col{display:flex; flex-direction:column; align-items:center; min-height:0;}
+    .col b{font-family:Comfortaa,Nunito,sans-serif; font-weight:700; font-size:calc(var(--f)*1.35); color:var(--grafite);}
+    .col.zero b{opacity:.3;}
+    .colBarra{flex:1; width:70%; display:flex; align-items:flex-end; min-height:0; margin-top:calc(var(--u)*.3);}
+    .colBarra i{display:block; width:100%; height:0; min-height:3px; background:var(--cor); border-radius:calc(var(--u)*.4) calc(var(--u)*.4) 2px 2px; transition:height .9s cubic-bezier(.22,1,.36,1);}
+    .col span{font-size:calc(var(--f)*1); font-weight:700; color:var(--suave); margin-top:calc(var(--u)*.35); white-space:nowrap;}
+    .col.hoje span{color:var(--grafite); font-weight:900;}
+    .col.fds span{opacity:.55;}
+
+    /* Lista de solicitações esperando resposta */
+    .lista{flex:1; min-height:0; display:flex; flex-direction:column; overflow:hidden;}
+    .req{display:grid; grid-template-columns:calc(var(--f)*5.2) 1fr auto; align-items:baseline; gap:calc(var(--u)*1); padding:calc(var(--u)*.7) 0; border-top:1px solid rgba(60,61,61,.1);}
+    .req:first-child{border-top:0;}
+    .req .id{font-family:Comfortaa,Nunito,sans-serif; font-weight:700; font-size:calc(var(--f)*1.45); color:var(--azul);}
+    .req .cli{font-size:calc(var(--f)*1.45); font-weight:700; color:var(--grafite); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0;}
+    .req .cli small{display:block; font-size:.72em; font-weight:600; color:var(--suave);}
+    .req em{font-style:normal; font-size:calc(var(--f)*1.3); font-weight:800; white-space:nowrap; color:var(--agua);}
+    .req.f2 em{color:var(--ambar);} .req.f3 em{color:var(--alerta);}
+    .mais{margin-top:auto; padding-top:calc(var(--u)*.6); font-size:calc(var(--f)*1.1); font-weight:700; color:var(--suave);}
+    .nada{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:calc(var(--u)*.6); color:var(--grafite);}
+    .nada b{font-family:Comfortaa,Nunito,sans-serif; font-size:calc(var(--f)*5); color:var(--verde); line-height:1;}
+    .nada span{font-size:calc(var(--f)*1.6); font-weight:700;}
+
+    /* Fila que roda, embaixo */
+    .rodape{grid-column:1 / -1; grid-row:2; display:flex; align-items:center; gap:calc(var(--u)*1.4);}
+    .chips{display:flex; gap:calc(var(--u)*.6); flex-wrap:wrap;}
+    .chip{font-size:calc(var(--f)*1.1); font-weight:800; color:var(--grafite); background:#fff; border-radius:99em;
+      padding:calc(var(--u)*.3) calc(var(--u)*.9); opacity:.5; transition:opacity .4s, background-color .4s, color .4s; white-space:nowrap;}
+    .chip b{margin-left:.35em; color:var(--alerta);}
+    .chip.ativa{opacity:1; background:var(--grafite); color:#fff;}
+    .chip.ativa.alerta{background:var(--alerta);}
+    .chip.ativa.azul{background:var(--azul);}
+    .chip i.ponto{width:.5em; height:.5em; vertical-align:.15em;}
+    .chip.ativa b{color:#fff;}
+    .pontos{display:flex; gap:calc(var(--u)*.5);}
+    .pontos i{width:calc(var(--u)*.9); height:calc(var(--u)*.9); border-radius:50%; background:#fff; opacity:.6; transition:background-color .4s, opacity .4s;}
+    .pontos i.ativa{background:var(--azul); opacity:1;}
+    .barra{flex:1; height:calc(var(--u)*.35); background:rgba(60,61,61,.12); border-radius:99em; overflow:hidden;}
+    .barra i{display:block; height:100%; width:0; background:var(--grafite); border-radius:inherit;}
+    .barra i.rodando{animation:encher var(--tempo,15s) linear forwards;}
+    @keyframes encher{to{width:100%}}
+
+    /* ---- Satisfação do Cliente: design "Avaliações na TV" (aprovado pelo Kaio), escopado em #telaCsat ---- */
+    #telaCsat{
       --grafite:#3C3D3D; --azul-claro:#0896F7; --azul-medio:#0F74B9;
-      --estrela:#F5B301; --estrela-vazia:rgba(60,61,61,.15); --suave:rgba(60,61,61,.7);
-      --tempo:9s;
+      --estrela:#F5B301; --estrela-vazia:rgba(60,61,61,.15); --suave:rgba(60,61,61,.7); --tempo:9s;
+      --stroke:rgba(15,23,42,.08); --text:#0f172a; --muted:#64748b; --blue:#2563eb; --green:#16a34a; --red:#dc2626;
+      --amber:#d97706; --teal:#0d9488; --shadow:0 2px 6px -1px rgba(15,23,42,.10); --card-bg:#ffffff;
       color:var(--grafite);
     }
-    .csat{height:100%; min-height:0; display:grid; grid-template-rows:auto 1fr; gap:calc(var(--u)*.8);}
-    .csat.vazio{grid-template-rows:auto auto 1fr;}
-    .avisoMes{
+    #telaCsat .csat{height:100%; min-height:0; display:grid; grid-template-rows:auto 1fr; gap:calc(var(--u)*.8);}
+    #telaCsat .csat.vazio{grid-template-rows:auto auto 1fr;}
+    #telaCsat .avisoMes{
       display:none;
       font-size:var(--f); font-weight:700; color:#92400e;
       background:#fffbeb; border:1px solid #fcd34d; border-radius:calc(var(--u)*.5);
       padding:calc(var(--u)*.4) calc(var(--u)*.9);
     }
-    .csat.vazio .avisoMes{display:block;}
+    #telaCsat .csat.vazio .avisoMes{display:block;}
 
-    /* 4 números na primeira linha; notas recebidas ocupam a linha de baixo inteira, em destaque */
-    .placar{display:grid; grid-template-columns:repeat(4,1fr); gap:calc(var(--u)*.8);}
-    .kpi{
+    
+    #telaCsat .placar{display:grid; grid-template-columns:repeat(4,1fr); gap:calc(var(--u)*.8);}
+    #telaCsat .kpi{
       flex:1; min-width:0; display:flex; align-items:center; gap:calc(var(--u)*.9);
       background:#fff; border:1px solid rgba(60,61,61,.1); border-radius:calc(var(--u)*1);
       box-shadow:0 calc(var(--u)*.3) calc(var(--u)*1) rgba(15,55,90,.06);
       padding:calc(var(--u)*.7) calc(var(--u)*1.1);
     }
-    .kpi > div{min-width:0;}
-    .kpi small{display:block; font-size:calc(var(--f)*.85); font-weight:800; color:var(--suave); text-transform:uppercase; letter-spacing:.06em; white-space:nowrap;}
-    .kpi .linha{display:flex; align-items:baseline; gap:calc(var(--u)*.45); white-space:nowrap;}
-    .kpiSub{font-size:calc(var(--f)*.85); font-weight:700; color:var(--suave); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-    .kpi b{font-size:calc(var(--f)*2.7); font-weight:900; line-height:1.1; letter-spacing:-.02em;}
-    .kpi em{font-style:normal; font-size:calc(var(--f)*.95); font-weight:600; color:var(--suave);}
-    .kpi .estrelas svg{width:calc(var(--u)*1.25); height:calc(var(--u)*1.25);}
-    .kpi.verde b{color:#0B8A00;}
-    .kpiDelta{font-size:calc(var(--f)*.85); font-weight:700; color:var(--suave); margin-top:calc(var(--u)*.15); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-    .kpiDelta b{font-size:1em; font-weight:800; letter-spacing:0;}
-    .kpiDelta .up{color:var(--green);} .kpiDelta .down{color:var(--red);}
+    #telaCsat .kpi > div{min-width:0;}
+    #telaCsat .kpi small{display:block; font-size:calc(var(--f)*.85); font-weight:800; color:var(--suave); text-transform:uppercase; letter-spacing:.06em; white-space:nowrap;}
+    #telaCsat .kpi .linha{display:flex; align-items:baseline; gap:calc(var(--u)*.45); white-space:nowrap;}
+    #telaCsat .kpiSub{font-size:calc(var(--f)*.85); font-weight:700; color:var(--suave); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+    #telaCsat .kpi b{font-size:calc(var(--f)*2.7); font-weight:900; line-height:1.1; letter-spacing:-.02em;}
+    #telaCsat .kpi em{font-style:normal; font-size:calc(var(--f)*.95); font-weight:600; color:var(--suave);}
+    #telaCsat .kpi .estrelas svg{width:calc(var(--u)*1.25); height:calc(var(--u)*1.25);}
+    #telaCsat .kpi.verde b{color:#0B8A00;}
+    #telaCsat .kpiDelta{font-size:calc(var(--f)*.85); font-weight:700; color:var(--suave); margin-top:calc(var(--u)*.15); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+    #telaCsat .kpiDelta b{font-size:1em; font-weight:800; letter-spacing:0;}
+    #telaCsat .kpiDelta .up{color:var(--green);} #telaCsat .kpiDelta .down{color:var(--red);}
 
-    .anel{width:calc(var(--u)*4.2); height:calc(var(--u)*4.2); flex:none;}
-    .anel svg{width:100%; height:100%; transform:rotate(-90deg);}
-    .anel circle{fill:none; stroke-width:14;}
-    .anel .fundo{stroke:rgba(60,61,61,.1);}
-    .anel .valor{stroke:var(--azul-claro); stroke-linecap:round; transition:stroke-dashoffset 1.6s cubic-bezier(.22,1,.36,1);}
+    #telaCsat .anel{width:calc(var(--u)*4.2); height:calc(var(--u)*4.2); flex:none;}
+    #telaCsat .anel svg{width:100%; height:100%; transform:rotate(-90deg);}
+    #telaCsat .anel circle{fill:none; stroke-width:14;}
+    #telaCsat .anel .fundo{stroke:rgba(60,61,61,.1);}
+    #telaCsat .anel .valor{stroke:var(--azul-claro); stroke-linecap:round; transition:stroke-dashoffset 1.6s cubic-bezier(.22,1,.36,1);}
 
-    .kpi.notas{grid-column:1/-1; padding:calc(var(--u)*.8) calc(var(--u)*1.6);}
-    .kpi.notas > div{flex:1;}
-    .dist{display:flex; gap:calc(var(--u)*2.6); margin-top:calc(var(--u)*.4);}
-    .notaCol{flex:1; font-size:calc(var(--f)*1.7);}
-    .notaCol .rotulo{display:flex; justify-content:space-between; align-items:baseline; font-weight:800;}
-    .notaCol .rotulo span{display:flex; align-items:center; gap:.15em; font-size:1.2em;}
-    .notaCol .rotulo svg{width:.85em; height:.85em; fill:var(--estrela);}
-    .notaCol .rotulo em{font-style:normal; font-size:1.2em; font-weight:900; color:var(--grafite);}
-    .notaCol .qtd{font-size:.68em; font-weight:700; color:var(--suave); margin-top:calc(var(--u)*.3);}
-    .notaCol .trilho{height:calc(var(--u)*.9); margin-top:calc(var(--u)*.4);}
-    .trilho{height:calc(var(--u)*.5); margin-top:calc(var(--u)*.3); background:rgba(60,61,61,.1); border-radius:99em; overflow:hidden;}
-    .trilho i{display:block; height:100%; width:0; background:var(--estrela); border-radius:inherit; transition:width 1.4s cubic-bezier(.22,1,.36,1);}
-    .trilho i.baixa{background:var(--red);}
+    #telaCsat .kpi.notas{grid-column:1/-1; padding:calc(var(--u)*.8) calc(var(--u)*1.6);}
+    #telaCsat .kpi.notas > div{flex:1;}
+    #telaCsat .dist{display:flex; gap:calc(var(--u)*2.6); margin-top:calc(var(--u)*.4);}
+    #telaCsat .notaCol{flex:1; font-size:calc(var(--f)*1.7);}
+    #telaCsat .notaCol .rotulo{display:flex; justify-content:space-between; align-items:baseline; font-weight:800;}
+    #telaCsat .notaCol .rotulo span{display:flex; align-items:center; gap:.15em; font-size:1.2em;}
+    #telaCsat .notaCol .rotulo svg{width:.85em; height:.85em; fill:var(--estrela);}
+    #telaCsat .notaCol .rotulo em{font-style:normal; font-size:1.2em; font-weight:900; color:var(--grafite);}
+    #telaCsat .notaCol .qtd{font-size:.68em; font-weight:700; color:var(--suave); margin-top:calc(var(--u)*.3);}
+    #telaCsat .notaCol .trilho{height:calc(var(--u)*.9); margin-top:calc(var(--u)*.4);}
+    #telaCsat .trilho{height:calc(var(--u)*.5); margin-top:calc(var(--u)*.3); background:rgba(60,61,61,.1); border-radius:99em; overflow:hidden;}
+    #telaCsat .trilho i{display:block; height:100%; width:0; background:var(--estrela); border-radius:inherit; transition:width 1.4s cubic-bezier(.22,1,.36,1);}
+    #telaCsat .trilho i.baixa{background:var(--red);}
 
-    .palcoCsat{
+    #telaCsat .palcoCsat{
       min-height:0; display:grid; gap:calc(var(--u)*.8) calc(var(--u)*1.2);
       grid-template-columns:1fr calc(var(--u)*30); grid-template-rows:1fr auto;
     }
-    .cena{
+    #telaCsat .cena{
       grid-column:1; grid-row:1; min-height:0;
       display:grid; grid-template-columns:calc(var(--u)*16) 1fr; align-items:center; gap:calc(var(--u)*3);
       padding:0 calc(var(--u)*1) 0 calc(var(--u)*.5);
     }
-    .pessoa{display:flex; flex-direction:column; align-items:center; gap:calc(var(--u)*1);}
-    .avatar{
+    #telaCsat .pessoa{display:flex; flex-direction:column; align-items:center; gap:calc(var(--u)*1);}
+    #telaCsat .avatar{
       width:calc(var(--u)*12.5); height:calc(var(--u)*12.5); border-radius:50%;
       background:var(--cor, var(--azul-claro)); display:grid; place-items:center; position:relative;
       box-shadow:0 0 0 calc(var(--u)*.6) rgba(8,150,247,.08), 0 calc(var(--u)*1.4) calc(var(--u)*2.6) rgba(15,55,90,.18);
     }
-    .avatar svg{width:62%; height:62%; fill:rgba(255,255,255,.95);}
-    .avatar::after{
+    #telaCsat .avatar svg{width:62%; height:62%; fill:rgba(255,255,255,.95);}
+    #telaCsat .avatar::after{
       content:""; position:absolute; inset:calc(var(--u)*-1.3); border-radius:50%;
       border:calc(var(--u)*.22) solid var(--cor, var(--azul-claro)); opacity:0;
       animation:csPulso 2.4s ease-out 1.2s infinite;
     }
-    .nome{font-size:calc(var(--f)*1.9); font-weight:800; text-align:center; line-height:1.15;}
-    .origem{font-size:calc(var(--f)*1.1); font-weight:600; color:var(--suave); text-align:center; margin-top:calc(var(--u)*-.5);}
+    #telaCsat .nome{font-size:calc(var(--f)*1.9); font-weight:800; text-align:center; line-height:1.15;}
+    #telaCsat .origem{font-size:calc(var(--f)*1.1); font-weight:600; color:var(--suave); text-align:center; margin-top:calc(var(--u)*-.5);}
 
-    .balao{
+    #telaCsat .balao{
       position:relative; background:#fff; color:#2B2C2C;
       border-radius:calc(var(--u)*2.2); padding:calc(var(--u)*2.4) calc(var(--u)*3) calc(var(--u)*2.2);
       box-shadow:0 calc(var(--u)*1.4) calc(var(--u)*3.2) rgba(15,55,90,.14); border:1px solid rgba(60,61,61,.08);
       transform-origin:0% 55%;
     }
-    .balao::before{
+    #telaCsat .balao::before{
       content:""; position:absolute; left:calc(var(--u)*-1.9); top:50%; transform:translateY(-50%);
       border-style:solid; border-width:calc(var(--u)*1.4) calc(var(--u)*2) calc(var(--u)*1.4) 0;
       border-color:transparent #fff transparent transparent;
     }
-    .aspas{position:absolute; top:calc(var(--u)*-1.6); left:calc(var(--u)*1); font-size:calc(var(--u)*7); line-height:1; font-weight:700; color:var(--cor, var(--azul-claro)); font-family:Georgia,serif;}
-    .balao .estrelas{margin-bottom:calc(var(--u)*.9);}
-    .balao .estrelas svg{width:calc(var(--u)*2.4); height:calc(var(--u)*2.4);}
-    .comentario{margin:0; font-size:calc(var(--f)*2.5); line-height:1.35; font-weight:600; letter-spacing:-.01em;}
-    .comentario.longo{font-size:calc(var(--f)*2.1);}
-    .comentario.muitoLongo{font-size:calc(var(--f)*1.8);}
-    .cena.semComentario .pessoa, .cena.semComentario .aspas, .cena.semComentario .balao .estrelas{display:none;}
-    .cena.semComentario{grid-template-columns:1fr;}
-    .cena.semComentario .balao::before{display:none;}
-    .cena.semComentario .comentario{color:var(--suave); text-align:center;}
+    #telaCsat .aspas{position:absolute; top:calc(var(--u)*-1.6); left:calc(var(--u)*1); font-size:calc(var(--u)*7); line-height:1; font-weight:700; color:var(--cor, var(--azul-claro)); font-family:Georgia,serif;}
+    #telaCsat .balao .estrelas{margin-bottom:calc(var(--u)*.9);}
+    #telaCsat .balao .estrelas svg{width:calc(var(--u)*2.4); height:calc(var(--u)*2.4);}
+    #telaCsat .comentario{margin:0; font-size:calc(var(--f)*2.5); line-height:1.35; font-weight:600; letter-spacing:-.01em;}
+    #telaCsat .comentario.longo{font-size:calc(var(--f)*2.1);}
+    #telaCsat .comentario.muitoLongo{font-size:calc(var(--f)*1.8);}
+    #telaCsat .cena.semComentario .pessoa, #telaCsat .cena.semComentario .aspas, #telaCsat .cena.semComentario .balao .estrelas{display:none;}
+    #telaCsat .cena.semComentario{grid-template-columns:1fr;}
+    #telaCsat .cena.semComentario .balao::before{display:none;}
+    #telaCsat .cena.semComentario .comentario{color:var(--suave); text-align:center;}
 
-    .estrelas{display:flex; gap:calc(var(--u)*.2);}
-    .estrelas svg{fill:var(--estrela-vazia);}
-    .estrelas svg.cheia{fill:var(--estrela);}
+    #telaCsat .estrelas{display:flex; gap:calc(var(--u)*.2);}
+    #telaCsat .estrelas svg{fill:var(--estrela-vazia);}
+    #telaCsat .estrelas svg.cheia{fill:var(--estrela);}
 
-    .rodapeCena{grid-column:1; grid-row:2; display:flex; align-items:center; gap:calc(var(--u)*1.6); padding:0 calc(var(--u)*.5);}
-    .fila{display:flex; gap:calc(var(--u)*.7);}
-    .mini{width:calc(var(--u)*2.5); height:calc(var(--u)*2.5); border-radius:50%; background:var(--cor); display:grid; place-items:center; opacity:.35; transition:opacity .4s, transform .4s;}
-    .mini svg{width:60%; height:60%; fill:#fff;}
-    .mini.ativa{opacity:1; transform:scale(1.18); box-shadow:0 0 0 calc(var(--u)*.2) rgba(60,61,61,.25);}
-    .barra{flex:1; height:calc(var(--u)*.4); background:rgba(60,61,61,.1); border-radius:99em; overflow:hidden;}
-    .barra i{display:block; height:100%; width:0; background:var(--azul-claro); border-radius:inherit;}
-    .barra i.rodando{animation:csEncher var(--tempo) linear forwards;}
-    .cena.semComentario ~ .rodapeCena{visibility:hidden;}
+    #telaCsat .rodapeCena{grid-column:1; grid-row:2; display:flex; align-items:center; gap:calc(var(--u)*1.6); padding:0 calc(var(--u)*.5);}
+    #telaCsat .fila{display:flex; gap:calc(var(--u)*.7);}
+    #telaCsat .mini{width:calc(var(--u)*2.5); height:calc(var(--u)*2.5); border-radius:50%; background:var(--cor); display:grid; place-items:center; opacity:.35; transition:opacity .4s, transform .4s;}
+    #telaCsat .mini svg{width:60%; height:60%; fill:#fff;}
+    #telaCsat .mini.ativa{opacity:1; transform:scale(1.18); box-shadow:0 0 0 calc(var(--u)*.2) rgba(60,61,61,.25);}
+    #telaCsat .barra{flex:1; height:calc(var(--u)*.4); background:rgba(60,61,61,.1); border-radius:99em; overflow:hidden;}
+    #telaCsat .barra i{display:block; height:100%; width:0; background:var(--azul-claro); border-radius:inherit;}
+    #telaCsat .barra i.rodando{animation:csEncher var(--tempo) linear forwards;}
+    #telaCsat .cena.semComentario ~ .rodapeCena{visibility:hidden;}
 
-    /* Quadro por setor: onde cobrar avaliação e acompanhar a nota */
-    .setores{
+    
+    #telaCsat .setores{
       grid-column:2; grid-row:1 / span 2; min-height:0; overflow:hidden;
       background:#fff; border:1px solid rgba(60,61,61,.1); border-radius:calc(var(--u)*1);
       box-shadow:0 calc(var(--u)*.3) calc(var(--u)*1) rgba(15,55,90,.06);
       padding:calc(var(--u)*1) calc(var(--u)*1.2); display:flex; flex-direction:column;
     }
-    .setores h2{margin:0 0 calc(var(--u)*.2); font-size:calc(var(--f)*1.35); font-weight:800; text-transform:uppercase; letter-spacing:.02em; color:#334155;}
-    .setores .legenda{font-size:calc(var(--f)*.9); font-weight:600; color:var(--suave); margin-bottom:calc(var(--u)*.8);}
-    .setorLista{flex:1; display:flex; flex-direction:column; gap:calc(var(--u)*1); min-height:0;}
-    .setor{border-top:1px solid rgba(60,61,61,.08); padding-top:calc(var(--u)*1);}
-    .setor:first-child{border-top:0; padding-top:0;}
-    .setorTopo{display:flex; justify-content:space-between; align-items:baseline; gap:calc(var(--u)*.5);}
-    .setorNome{font-size:calc(var(--f)*1.6); font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-    .setorNome small{font-size:.7em; font-weight:700; color:var(--suave); margin-left:.35em;}
-    .setorMedia{font-size:calc(var(--f)*1.6); font-weight:900; white-space:nowrap;}
-    .setorMedia i{font-style:normal; color:var(--estrela);}
-    .setorMedia.ruim{color:var(--red);}
-    .setorTaxa{display:flex; align-items:center; gap:calc(var(--u)*.6); margin-top:calc(var(--u)*.4); font-size:calc(var(--f)*1.15); font-weight:700; color:var(--suave); white-space:nowrap;}
-    .setorTaxa .trilho{flex:1; margin-top:0;}
-    .setorTaxa .trilho i{background:var(--azul-claro);}
-    .setorTaxa b{color:var(--grafite); font-weight:800;}
-    .baixas{margin-top:calc(var(--u)*.6); font-size:calc(var(--f)*1.1); font-weight:800; color:#0B8A00; background:#f0fdf4; border-radius:calc(var(--u)*.5); padding:calc(var(--u)*.45) calc(var(--u)*.7);}
-    .baixas.tem{color:var(--red); background:#fef2f2;}
+    #telaCsat .setores h2{margin:0 0 calc(var(--u)*.2); font-size:calc(var(--f)*1.35); font-weight:800; text-transform:uppercase; letter-spacing:.02em; color:#334155;}
+    #telaCsat .setores .legenda{font-size:calc(var(--f)*.9); font-weight:600; color:var(--suave); margin-bottom:calc(var(--u)*.8);}
+    #telaCsat .setorLista{flex:1; display:flex; flex-direction:column; gap:calc(var(--u)*1); min-height:0;}
+    #telaCsat .setor{border-top:1px solid rgba(60,61,61,.08); padding-top:calc(var(--u)*1);}
+    #telaCsat .setor:first-child{border-top:0; padding-top:0;}
+    #telaCsat .setorTopo{display:flex; justify-content:space-between; align-items:baseline; gap:calc(var(--u)*.5);}
+    #telaCsat .setorNome{font-size:calc(var(--f)*1.6); font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+    #telaCsat .setorNome small{font-size:.7em; font-weight:700; color:var(--suave); margin-left:.35em;}
+    #telaCsat .setorMedia{font-size:calc(var(--f)*1.6); font-weight:900; white-space:nowrap;}
+    #telaCsat .setorMedia i{font-style:normal; color:var(--estrela);}
+    #telaCsat .setorMedia.ruim{color:var(--red);}
+    #telaCsat .setorTaxa{display:flex; align-items:center; gap:calc(var(--u)*.6); margin-top:calc(var(--u)*.4); font-size:calc(var(--f)*1.15); font-weight:700; color:var(--suave); white-space:nowrap;}
+    #telaCsat .setorTaxa .trilho{flex:1; margin-top:0;}
+    #telaCsat .setorTaxa .trilho i{background:var(--azul-claro);}
+    #telaCsat .setorTaxa b{color:var(--grafite); font-weight:800;}
+    #telaCsat .baixas{margin-top:calc(var(--u)*.6); font-size:calc(var(--f)*1.1); font-weight:800; color:#0B8A00; background:#f0fdf4; border-radius:calc(var(--u)*.5); padding:calc(var(--u)*.45) calc(var(--u)*.7);}
+    #telaCsat .baixas.tem{color:var(--red); background:#fef2f2;}
 
-    /* ---- Painel Operacional: números do escritório, um departamento em destaque por vez, lista ao lado ---- */
-    .oper{height:100%; min-height:0; display:grid; grid-template-rows:auto 1fr; gap:calc(var(--u)*.8);}
-    .opPlacar{grid-template-columns:repeat(5,1fr);}
-    .anel .valor.verde{stroke:var(--green);}
-    .kpi.alerta{animation:bgPulse 2.4s infinite ease-in-out;}
-    .kpi.aviso{border-color:rgba(217,119,6,.6);}
-    .c-green{color:var(--green)} .c-blue{color:var(--blue)} .c-red{color:var(--red)}
-    .c-teal{color:var(--teal)} .c-amber{color:var(--amber)}
-
-    .opPalco{
-      min-height:0; display:grid; gap:calc(var(--u)*.8) calc(var(--u)*1.2);
-      grid-template-columns:1fr calc(var(--u)*30); grid-template-rows:1fr auto;
-    }
-    .destaque{
-      grid-column:1; grid-row:1; min-height:0; overflow:hidden;
-      background:#fff; border:2px solid rgba(60,61,61,.1); border-radius:calc(var(--u)*1.2);
-      box-shadow:0 calc(var(--u)*1) calc(var(--u)*2.6) rgba(15,55,90,.10);
-      padding:calc(var(--u)*1.1) calc(var(--u)*1.6); display:flex; flex-direction:column;
-    }
-    .destaque.alert{animation:bgPulse 2.4s infinite ease-in-out;}
-    .destaque.warn:not(.alert){border-color:rgba(217,119,6,.6);}
-    .dTopo{display:flex; justify-content:space-between; align-items:center; gap:calc(var(--u)*1);}
-    .dTopo h2{margin:0; font-size:calc(var(--f)*2.4); font-weight:900; text-transform:uppercase; letter-spacing:.01em; color:#334155; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-    .destaque.alert .dTopo h2{color:var(--red);}
-    .dSelo{flex:none; color:#fff; font-size:calc(var(--f)*1.05); font-weight:800; text-transform:uppercase; letter-spacing:.04em; padding:calc(var(--u)*.3) calc(var(--u)*.8); border-radius:calc(var(--u)*.4);}
-    .dSelo.atraso{background:var(--red); animation:textFlash 1.5s infinite;}
-    .dSelo.tec{background:var(--amber);}
-    .dSelo.ok{background:var(--green);}
-    .dCorpo{flex:1; min-height:0; display:grid; grid-template-columns:calc(var(--u)*23) 1fr; gap:calc(var(--u)*2.4); align-items:center;}
-    .dRosca{position:relative; width:calc(var(--u)*23); height:calc(var(--u)*23);}
-    .dRosca canvas{position:absolute; inset:0;}
-    .dCentro{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:none;}
-    .dCentro b{font-size:calc(var(--f)*5); font-weight:900; letter-spacing:-.04em; line-height:1; color:var(--text);}
-    .dCentro small{font-size:calc(var(--f)*1); font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin-top:calc(var(--u)*.3);}
-    .dCentro em{font-style:normal; font-size:calc(var(--f)*1.3); font-weight:800; color:var(--teal); margin-top:calc(var(--u)*.4);}
-    .dInfo{min-width:0; height:100%; display:flex; flex-direction:column; justify-content:center; gap:calc(var(--u)*1.1);}
-    .dNums{display:grid; grid-template-columns:repeat(5,1fr); gap:calc(var(--u)*.6);}
-    .dNum{background:#f8fafc; border-radius:calc(var(--u)*.7); padding:calc(var(--u)*.5) calc(var(--u)*.6); text-align:center;}
-    .dNum b{display:block; font-size:calc(var(--f)*2.5); font-weight:900; line-height:1.1; letter-spacing:-.02em;}
-    .dNum.zero b{opacity:.3;}
-    .dNum span{font-size:calc(var(--f)*.85); font-weight:700; color:var(--muted); white-space:nowrap;}
-    .dNum span::before{content:""; display:inline-block; width:calc(var(--u)*.5); height:calc(var(--u)*.5); border-radius:50%; background:var(--dot); margin-right:calc(var(--u)*.25); vertical-align:.05em;}
-    .dGraf h3{margin:0 0 calc(var(--u)*.4); font-size:calc(var(--f)*1.05); font-weight:800; text-transform:uppercase; letter-spacing:.02em; color:#334155;}
-    .dGraf h3 small{font-size:.8em; font-weight:700; color:var(--muted); text-transform:none; letter-spacing:0; margin-left:.4em;}
-    .colunas{display:grid; grid-template-columns:repeat(7,1fr); gap:calc(var(--u)*.6); height:calc(var(--u)*8);}
-    .col{display:flex; flex-direction:column; align-items:center; min-height:0;}
-    .col b{font-size:calc(var(--f)*1.15); font-weight:900; line-height:1.2;}
-    .col.zero b{opacity:.3;}
-    .colBarra{flex:1; width:72%; display:flex; align-items:flex-end; min-height:0;}
-    .colBarra i{display:block; width:100%; height:0; min-height:2px; background:var(--cor); border-radius:4px 4px 0 0; transition:height .9s cubic-bezier(.22,1,.36,1);}
-    .col span{font-size:calc(var(--f)*.85); font-weight:700; color:var(--muted); margin-top:calc(var(--u)*.25); white-space:nowrap;}
-    .col.hoje span{color:var(--grafite); font-weight:900;}
-    .col.fds span{opacity:.55;}
-
-    .opLista #opLista{flex:1; display:flex; flex-direction:column; gap:calc(var(--u)*.35); min-height:0;}
-    .opItem{padding:calc(var(--u)*.55) calc(var(--u)*.7); border-radius:calc(var(--u)*.6); border-left:calc(var(--u)*.3) solid transparent; transition:background .4s, border-color .4s;}
-    .opItem.ativo{background:#eff6ff; border-left-color:var(--azul-claro);}
-    .opItemTopo{display:flex; justify-content:space-between; align-items:baseline; gap:calc(var(--u)*.5);}
-    .opItemTopo span{font-size:calc(var(--f)*1.35); font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-    .opItemTopo b{font-size:calc(var(--f)*1.35); font-weight:900;}
-    .opItem.atraso .opItemTopo span{color:var(--red);}
-    .opItem .trilho{margin-top:calc(var(--u)*.3);}
-    .opItem .trilho i{background:var(--green);}
-    .opChips{display:flex; flex-wrap:wrap; gap:0 calc(var(--u)*.9); margin-top:calc(var(--u)*.3); font-size:calc(var(--f)*.95); font-weight:700; color:var(--muted);}
-    .opChips .r{color:var(--red);} .opChips .a{color:var(--amber);} .opChips .t{color:var(--teal);}
-    .chip{font-size:calc(var(--f)*.95); font-weight:800; color:#334155; background:#fff; border:1px solid rgba(60,61,61,.12); border-radius:99em; padding:calc(var(--u)*.2) calc(var(--u)*.7); opacity:.45; white-space:nowrap; transition:opacity .4s, transform .4s;}
-    .chip.atraso{color:var(--red); border-color:rgba(220,38,38,.4);}
-    .chip.ativa{opacity:1; transform:scale(1.1); box-shadow:0 0 0 calc(var(--u)*.15) rgba(8,150,247,.35);}
-
-    .destaque.entra .dTopo{animation:csSobe .5s ease-out both;}
-    .destaque.entra .dRosca{animation:csPopAvatar .7s cubic-bezier(.34,1.56,.64,1) .1s both;}
-    .destaque.entra .dNums{animation:csSobe .6s ease-out .3s both;}
-    .destaque.entra .dGraf{animation:csSobe .6s ease-out .45s both;}
-
-    /* ---- Solicitações sem resposta: um departamento por vez, com as solicitações pendentes ---- */
-    .sol{height:100%; min-height:0; display:grid; grid-template-rows:auto 1fr auto; gap:calc(var(--u)*.8);}
-    .solPlacar{grid-template-columns:repeat(4,1fr);}
-    .solResumo{display:flex; flex-wrap:wrap; gap:calc(var(--u)*.5) calc(var(--u)*1.6); margin-top:calc(var(--u)*.5); font-size:calc(var(--f)*1.2); font-weight:700; color:var(--muted);}
-    .solResumo b{color:var(--grafite); font-weight:900;}
-    .solResumo .r{color:var(--red);}
-    .solTabela{flex:1; min-height:0; margin-top:calc(var(--u)*1); display:grid; grid-template-columns:1fr 1fr; grid-auto-rows:min-content; gap:calc(var(--u)*.7) calc(var(--u)*1);}
-    .solReq{display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:calc(var(--u)*.9);
-      background:#f8fafc; border-left:calc(var(--u)*.4) solid var(--teal); border-radius:calc(var(--u)*.6); padding:calc(var(--u)*.6) calc(var(--u)*.9);}
-    .solReq.f2{border-left-color:var(--amber);} .solReq.f3{border-left-color:var(--red); background:#fef2f2;}
-    .solReq .id{font-size:calc(var(--f)*1.3); font-weight:900; color:var(--grafite);}
-    .solReq .cli{font-size:calc(var(--f)*1.3); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0;}
-    .solReq em{font-style:normal; font-size:calc(var(--f)*1.05); font-weight:800; white-space:nowrap; color:var(--teal);}
-    .solReq.f2 em{color:var(--amber);} .solReq.f3 em{color:var(--red);}
-    .solReq small{display:block; font-size:.75em; font-weight:700; color:var(--muted); text-align:right;}
-    .solOk{flex:1; display:flex; align-items:center; justify-content:center; font-size:calc(var(--f)*2.2); font-weight:900; color:var(--green);}
-    .solMais{grid-column:1/-1; font-size:calc(var(--f)*1.05); font-weight:700; color:var(--muted); text-align:center;}
-    .solLegenda{display:flex; justify-content:center; gap:calc(var(--u)*2.4); font-size:calc(var(--f)*1.05); font-weight:700; color:var(--muted);}
-    .solLegenda span::before{content:""; display:inline-block; width:calc(var(--u)*.9); height:calc(var(--u)*.9); border-radius:3px; background:var(--cor); margin-right:calc(var(--u)*.4); vertical-align:-.1em;}
-    .destaque.entra .solResumo{animation:csSobe .5s ease-out .2s both;}
-    .destaque.entra .solReq, .destaque.entra .solOk{animation:csSobe .5s ease-out both; animation-delay:var(--d,.3s);}
-    .opItem .opItemTopo b.zero{color:var(--green);}
-
-    /* Entrada animada de cada comentário */
-    .cena.entra .avatar{animation:csPopAvatar .7s cubic-bezier(.34,1.56,.64,1) both;}
-    .cena.entra .nome, .cena.entra .origem{animation:csSobe .6s ease-out .25s both;}
-    .cena.entra .balao{animation:csPopBalao .7s cubic-bezier(.34,1.4,.64,1) .35s both;}
-    .cena.entra .comentario{animation:csSobe .6s ease-out .7s both;}
-    .cena.entra .balao .estrelas svg{animation:csEstrela .45s cubic-bezier(.34,1.8,.64,1) both;}
-    .cena.sai .pessoa, .cena.sai .balao{animation:csSome .5s ease-in both;}
+    #telaCsat .cena.entra .avatar{animation:csPopAvatar .7s cubic-bezier(.34,1.56,.64,1) both;}
+    #telaCsat .cena.entra .nome, #telaCsat .cena.entra .origem{animation:csSobe .6s ease-out .25s both;}
+    #telaCsat .cena.entra .balao{animation:csPopBalao .7s cubic-bezier(.34,1.4,.64,1) .35s both;}
+    #telaCsat .cena.entra .comentario{animation:csSobe .6s ease-out .7s both;}
+    #telaCsat .cena.entra .balao .estrelas svg{animation:csEstrela .45s cubic-bezier(.34,1.8,.64,1) both;}
+    #telaCsat .cena.sai .pessoa, #telaCsat .cena.sai .balao{animation:csSome .5s ease-in both;}
     @keyframes csPopAvatar{from{transform:scale(.3); opacity:0} to{transform:scale(1); opacity:1}}
     @keyframes csPopBalao{from{transform:scale(.2) translateX(-10%); opacity:0} to{transform:none; opacity:1}}
     @keyframes csSobe{from{transform:translateY(1.2em); opacity:0} to{transform:none; opacity:1}}
@@ -356,95 +313,118 @@
     @keyframes csSome{to{transform:translateY(-1em); opacity:0}}
     @keyframes csPulso{0%{transform:scale(.92); opacity:.55} 100%{transform:scale(1.18); opacity:0}}
     @keyframes csEncher{to{width:100%}}
+    #telaCsat .csat{grid-template-rows:auto auto 1fr;}
+    #telaCsat .csat.vazio{grid-template-rows:auto auto auto 1fr;}
+    #telaCsat .csTopo{display:flex; align-items:center; justify-content:space-between; gap:calc(var(--u)*1.2);}
+    #telaCsat .csTopo h2{margin:0; font-family:Comfortaa,Nunito,sans-serif; font-weight:700; font-size:calc(var(--f)*2.2); color:var(--grafite);}
+    #telaCsat .setor.ativo{background:#eff6ff; border-radius:calc(var(--u)*.6); margin:0 calc(var(--u)*-.6); padding-left:calc(var(--u)*.6); padding-right:calc(var(--u)*.6);}
+    #telaCsat .setor.ativo + .setor{border-top-color:transparent;}
+    /* Sem cabeçalho a tela tem menos altura útil: quadro por setor mais compacto */
+    #telaCsat .setorLista{gap:calc(var(--u)*.45); overflow:hidden;}
+    #telaCsat .setor{padding-top:calc(var(--u)*.45);}
+    #telaCsat .setorNome, #telaCsat .setorMedia{font-size:calc(var(--f)*1.3);}
+    #telaCsat .setorTaxa{margin-top:calc(var(--u)*.2); font-size:calc(var(--f)*1);}
+    #telaCsat .setores .legenda{margin-bottom:calc(var(--u)*.5);}
+    #telaCsat .baixas{flex:none;}
+    #telaCsat .comentario.semTexto{color:var(--suave); font-weight:700;}
 
-    /* Telas em pé (celular, monitor vertical): cards em coluna com altura fixa */
+    /* Rodapé da página */
+    footer{display:flex; justify-content:space-between; align-items:center; gap:calc(var(--u)*1); padding:0 calc(var(--u)*.4);
+      color:var(--suave); font-size:calc(var(--f)*.85); font-weight:700;}
+    footer .dir{display:flex; align-items:center; gap:calc(var(--u)*.9);}
+    .telaDots{display:flex; gap:calc(var(--u)*.3);}
+    .telaDots span{width:calc(var(--u)*.5); height:calc(var(--u)*.5); border-radius:50%; background:#c8ced6;}
+    .telaDots span.on{background:var(--grafite);}
+    .status{display:flex; align-items:center; gap:calc(var(--u)*.35);}
+    .dot{width:calc(var(--u)*.55); height:calc(var(--u)*.55); border-radius:50%; background:#c8ced6;}
+    .dot.ok{background:var(--verde);} .dot.warn{background:var(--ambar);} .dot.bad{background:var(--alerta);}
+    .status.warn, .status.bad{color:var(--alerta);}
+
+    .diag{position:absolute; left:calc(var(--u)*1); right:calc(var(--u)*1); bottom:calc(var(--u)*3); display:none; z-index:99;
+      padding:calc(var(--u)*.8); border-radius:calc(var(--u)*.6); background:#fef2f2; color:#991b1b; font-size:calc(var(--f)*.9);}
+    .diag.show{display:block}
+    .diag h3{margin:0 0 calc(var(--u)*.3);} .diag p{margin:0;}
+    .diag code{display:block; margin-top:calc(var(--u)*.4); font-family:monospace;}
+
+    /* Um único momento de movimento por troca: o bloco entra e o número sobe */
+    @keyframes sobe{from{transform:translateY(calc(var(--u)*1.2)); opacity:0} to{transform:none; opacity:1}}
+    .hero.entra .heroNome{animation:sobe .55s ease-out both;}
+    .hero.entra .heroGrande, .hero.entra .heroLinha, .hero.entra .tiles{animation:sobe .6s ease-out .12s both;}
+    @media (prefers-reduced-motion: reduce){ *{animation:none !important; transition:none !important;} }
+
+    /* Telas em pé (celular, monitor vertical) */
     @media (max-aspect-ratio: 1/1){
       :root{ --u: 2.2vw; --f: calc(var(--u)*.88); }
       body{overflow:auto;}
-      .wrap{height:auto; grid-template-rows:auto auto auto;}
-      header{padding:calc(var(--u)*.8) calc(var(--u)*1.2);}
-      .oper{grid-template-rows:none;}
-      .opPlacar{grid-template-columns:repeat(2,1fr);}
-      .opPalco{grid-template-columns:1fr; grid-template-rows:none;}
-      .destaque, .opPalco .rodapeCena, .opLista{grid-column:1; grid-row:auto;}
-      .dCorpo{grid-template-columns:1fr; justify-items:center;}
-      .dInfo{width:100%;}
-      .dNums{grid-template-columns:repeat(3,1fr);}
-      .fila{flex-wrap:wrap;}
-      .sol{grid-template-rows:none;}
-      .solPlacar{grid-template-columns:repeat(2,1fr);}
-      .solTabela{grid-template-columns:1fr;}
-      .solLegenda{flex-wrap:wrap; gap:calc(var(--u)*.6) calc(var(--u)*1.6);}
+      .wrap{height:auto;}
       .tela{position:static;}
       .tela.oculta{display:none;}
-      .csat, .csat.vazio{grid-template-rows:none;}
-      .placar{grid-template-columns:repeat(2,1fr);}
-      .dist{gap:calc(var(--u)*1.2);}
-      .notaCol{font-size:calc(var(--f)*1.2);}
-      .palcoCsat{grid-template-columns:1fr; grid-template-rows:none;}
-      .cena, .rodapeCena, .setores{grid-column:1; grid-row:auto;}
-      .cena{grid-template-columns:1fr; min-height:calc(var(--u)*40);}
-      .balao::before{display:none;}
+      .painel{grid-template-columns:1fr; grid-template-rows:none;}
+      .escritorio{grid-template-columns:repeat(2,1fr);}
+      .escritorio h2{grid-column:1/-1;}
+      .hero, .lado, .rodape, .opCard{grid-column:1; grid-row:auto;}
+      .opCorpo{grid-template-columns:1fr; justify-items:center;}
+      .hero{min-height:calc(var(--u)*52);}
+      .tiles{grid-template-columns:1fr 1fr !important;}
+      .tiles .seta{display:none;}
+      footer{flex-wrap:wrap;}
+      #telaCsat .csat, #telaCsat .csat.vazio{grid-template-rows:none;}
+      #telaCsat .placar{grid-template-columns:repeat(2,1fr);}
+      #telaCsat .palcoCsat{grid-template-columns:1fr; grid-template-rows:none;}
+      #telaCsat .cena, #telaCsat .rodapeCena, #telaCsat .setores{grid-column:1; grid-row:auto;}
+      #telaCsat .cena{grid-template-columns:1fr; min-height:calc(var(--u)*40);}
+      #telaCsat .balao::before{display:none;}
+      #telaCsat .csTopo{flex-wrap:wrap;}
     }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <header>
-      <div class="brand">
-        <div class="logo" aria-hidden="true"></div>
-        <div>
-          <h1 id="titulo">Conta Junto · Painel Operacional</h1>
-          <div class="sub" id="subtitulo">Status das entregas por departamento</div>
-        </div>
-      </div>
-      <div class="rightHeader">
-        <div class="pill telaDots sem-csat" id="telaDots" aria-hidden="true"><span class="on"></span></div>
-        <div class="pill">🕒 <span id="clock">--:--:--</span></div>
-        <div class="pill"><span class="dot" id="loadDot"></span><span id="loadLabel">Carregando...</span></div>
-      </div>
-    </header>
-
     <main>
+      <!-- 1. Painel Operacional: entregas do mês -->
       <section class="tela" id="telaOperacional">
         <div class="oper">
-          <div class="placar opPlacar">
-            <div class="kpi">
-              <div class="anel"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="fundo" cx="50" cy="50" r="42"/><circle class="valor verde" id="opAnel" cx="50" cy="50" r="42"/></svg></div>
-              <div><small>Concluído no mês</small><div class="linha"><b id="opPct">—</b></div><div class="kpiSub" id="opPctSub"></div></div>
-            </div>
-            <div class="kpi"><div><small>Entregues hoje</small><div class="linha"><b class="c-teal" id="opHoje">—</b></div><div class="kpiSub" id="opHojeSub"></div></div></div>
-            <div class="kpi"><div><small>No prazo</small><div class="linha"><b class="c-blue" id="opPrazo">—</b></div><div class="kpiSub">abertas dentro do prazo</div></div></div>
-            <div class="kpi" id="opKpiTec"><div><small>Prazo técnico vencido</small><div class="linha"><b class="c-amber" id="opTec">—</b></div><div class="kpiSub">meta interna vencida, sem multa</div></div></div>
-            <div class="kpi" id="opKpiAtraso"><div><small>Atrasadas</small><div class="linha"><b class="c-red" id="opAtraso">—</b></div><div class="kpiSub">passaram da data de atraso</div></div></div>
-          </div>
-          <div class="opPalco">
-            <div class="destaque" id="destaque">
-              <div class="dTopo"><h2 id="dNome">—</h2><span class="dSelo" id="dSelo"></span></div>
-              <div class="dCorpo">
-                <div class="dRosca"><canvas id="dChart"></canvas><div class="dCentro"><b id="dPct">0%</b><small>concluído</small><em id="dHojeTxt"></em></div></div>
-                <div class="dInfo">
-                  <div class="dNums" id="dNums"></div>
-                  <div class="dGraf"><h3>Vencem nos próximos 7 dias<small>prazo técnico, ainda abertas</small></h3><div class="colunas" id="dProx"></div></div>
-                  <div class="dGraf"><h3>Entregues nos últimos 7 dias</h3><div class="colunas" id="dUlt"></div></div>
-                </div>
+          <div class="escritorio" id="opEscritorio"></div>
+          <div class="painel">
+            <div class="opCard" id="opCard">
+              <div class="opCardTopo"><h2 id="opNome">—</h2><span class="opSelo" id="opSelo"></span></div>
+              <div class="opCorpo">
+                <div class="rosca"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="50" stroke="#EEF1F4"/><g id="opFatias"></g></svg>
+                  <div class="roscaCentro"><b id="opNum">0</b><span>concluídas</span><em id="opHoje"></em></div></div>
+                <div class="legenda5" id="opLegenda"></div>
               </div>
             </div>
-            <div class="rodapeCena">
-              <div class="fila" id="opFila"></div>
-              <div class="barra"><i id="opBarra"></i></div>
+            <div class="lado">
+              <div class="bloco"><h3>Vencem nos próximos 7 dias<small>prazo técnico, ainda abertas</small></h3><div class="colunas" id="opProx"></div></div>
+              <div class="bloco"><h3>Entregues nos últimos 7 dias</h3><div class="colunas" id="opUlt"></div></div>
             </div>
-            <aside class="setores opLista">
-              <h2>Departamentos</h2>
-              <div class="legenda">% concluído no mês · pendências</div>
-              <div id="opLista"></div>
-            </aside>
+            <div class="rodape"><div class="chips" id="opChips"></div><div class="barra"><i id="opBarra"></i></div></div>
           </div>
         </div>
       </section>
 
+      <!-- 2. Solicitações: respondidas, sem resposta e status -->
+      <section class="tela oculta" id="telaSol">
+        <div class="painel">
+          <div class="hero" id="solHero">
+            <div class="heroNome" id="solNome">—</div>
+            <div class="heroGrande"><b id="solNum">0</b><span id="solNumTxt"></span></div>
+            <div class="heroLinha" id="solLinha"></div>
+            <div class="heroBarra"><i id="solBarraMes"></i></div>
+            <div class="tiles" id="solTiles" style="grid-template-columns:1.3fr auto 1fr auto 1fr auto 1fr"></div>
+          </div>
+          <div class="lado">
+            <h3 id="solTit">Esperando a nossa resposta</h3>
+            <div class="lista" id="solLista"></div>
+          </div>
+          <div class="rodape"><div class="chips" id="solChips"></div><div class="barra"><i id="solBarra"></i></div></div>
+        </div>
+      </section>
+
+      <!-- 3. Satisfação do Cliente -->
       <section class="tela oculta" id="telaCsat">
         <div class="csat" id="csatGrid">
+          <div class="csTopo"><h2 id="csEscopo">Satisfação do cliente</h2><div class="chips" id="csChips"></div></div>
           <div class="placar">
             <div class="kpi"><div><small>Nota média</small><div class="linha"><b data-kpi="media">—</b><span class="estrelas" id="mediaEstrelas"></span></div><div class="kpiSub" id="mediaSub"></div><div class="kpiDelta" data-delta="media">—</div></div></div>
             <div class="kpi"><div><small>Avaliações</small><div class="linha"><b data-kpi="resp">—</b><em>recebidas</em></div><div class="kpiSub" id="respCanais"></div><div class="kpiDelta" data-delta="resp">—</div></div></div>
@@ -482,47 +462,20 @@
           </div>
         </div>
       </section>
-      <section class="tela oculta" id="telaSol">
-        <div class="sol" id="solGrid">
-          <div class="placar solPlacar">
-            <div class="kpi"><div><small>Externas sem resposta</small><div class="linha"><b id="solExt">—</b></div><div class="kpiSub" id="solExtSub"></div></div></div>
-            <div class="kpi"><div><small>Internas sem resposta</small><div class="linha"><b id="solInt">—</b></div><div class="kpiSub" id="solIntSub"></div></div></div>
-            <div class="kpi" id="solKpiVelhas"><div><small>Esperando há mais de 3 dias</small><div class="linha"><b class="c-red" id="solMais3">—</b></div><div class="kpiSub">externas e internas</div></div></div>
-            <div class="kpi"><div><small>Mais antiga sem resposta</small><div class="linha"><b id="solAntiga">—</b><em id="solAntigaUn"></em></div><div class="kpiSub" id="solAntigaSub"></div></div></div>
-          </div>
-          <div class="opPalco">
-            <div class="destaque" id="solDest">
-              <div class="dTopo"><h2 id="solDNome">—</h2><span class="dSelo" id="solDSelo"></span></div>
-              <div class="solResumo" id="solDResumo"></div>
-              <div class="solTabela" id="solTabela"></div>
-            </div>
-            <div class="rodapeCena">
-              <div class="fila" id="solFila"></div>
-              <div class="barra"><i id="solBarra"></i></div>
-            </div>
-            <aside class="setores opLista">
-              <h2>Departamentos</h2>
-              <div class="legenda">sem resposta · em aberto (externas e internas)</div>
-              <div id="solDeptos"></div>
-            </aside>
-          </div>
-          <div class="solLegenda">
-            <span style="--cor:var(--teal)">esperando até 1 dia</span>
-            <span style="--cor:var(--amber)">1 a 3 dias</span>
-            <span style="--cor:var(--red)">mais de 3 dias</span>
-          </div>
-        </div>
-      </section>
     </main>
 
     <footer>
-      <div>Fonte: <span id="sourceName">Acessórias</span> • <span id="sourceInfo">—</span></div>
-      <div>Atualizado em <span id="updatedAt">—</span></div>
+      <div>Fonte: <span id="sourceName">Acessórias</span>. <span id="sourceInfo"></span></div>
+      <div class="dir">
+        <span class="telaDots" id="telaDots" aria-hidden="true"></span>
+        <span class="status" id="status"><span class="dot" id="loadDot"></span><span id="loadLabel">Carregando</span></span>
+        <span>Atualizado em <span id="updatedAt">—</span></span>
+      </div>
     </footer>
   </div>
 
   <div class="diag" id="diag">
-    <h3>⚠️ Falha de Conexão</h3>
+    <h3>Falha de conexão</h3>
     <p id="diagMsg">—</p>
     <code id="diagUrl">—</code>
   </div>
@@ -533,38 +486,47 @@
 ============================================= */
 // dados.json é gerado do Acessórias pelo sincronizar.py (GitHub Actions, a cada 10 min).
 const DADOS_URL = "dados.json";
-// csat.json junta as avaliações do Bradial (WhatsApp) e do Acessórias; gerado pelo csat.py, na mesma rotina.
+// csat.json junta as avaliações do Bradial (WhatsApp) e do Acessórias; gerado pelo csat.py.
 const CSAT_URL = "csat.json";
-// solicitacoes.json: solicitações em aberto sem resposta nossa; gerado pelo solicitacoes.py, na mesma rotina.
+// solicitacoes.json: solicitações do mês e as que esperam resposta nossa; gerado pelo solicitacoes.py.
 const SOL_URL = "solicitacoes.json";
 const REFRESH_MS = 60 * 1000;
-// Sem atualização há mais que isso, o painel avisa que a rotina do GitHub parou.
+// Sem atualização há mais que isso, o rodapé avisa que a rotina do GitHub parou.
 const DESATUALIZADO_MS = 45 * 60 * 1000;
-// Troca entre as telas a cada 2 min. Para testar: ?tela=csat ou ?tela=solicitacoes fixa uma tela, ?rotacao=10 (segundos).
+// Troca de tela a cada 2 min. Para testar: ?tela=solicitacoes (ou csat, operacional) fixa uma tela, ?rotacao=10 (segundos).
 const PARAMS = new URLSearchParams(location.search);
 const TELA_FIXA = PARAMS.get("tela");
 const ROTACAO_MS = (Number(PARAMS.get("rotacao")) || 120) * 1000;
+// Cada posição de fila fica entre 8 e 20 s; a tela toda dura 2 min.
+const TEMPO_MIN=8000, TEMPO_MAX=20000;
+const TEMPO_COMENTARIO=9000;
+// Quantos departamentos entram na fila do Operacional e quantas solicitações cabem na lista.
+const MAX_DEPTOS=8, SOL_POR_PAGINA=9;
+// Setor com média abaixo disso fica em vermelho na Satisfação.
+const MEDIA_ALERTA=4;
 
 /* =============================================
    UTILITÁRIOS
 ============================================= */
-const el = (id) => document.getElementById(id);
+const el=(id)=>document.getElementById(id);
+const fmt=(n)=>Number(n||0).toLocaleString("pt-BR");
+const num=(v,casas=0)=>v===null||v===undefined?"—":Number(v).toLocaleString("pt-BR",{minimumFractionDigits:casas,maximumFractionDigits:casas});
+const MESES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+const DIAS_SEM=["dom","seg","ter","qua","qui","sex","sáb"];
+const mesExtenso=(d)=>(d||new Date()).toLocaleDateString("pt-BR",{month:"long"});
+const dias=(n)=>n===1?"dia":"dias";
+const ESTRELA='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5L2.6 9.4l6.5-.9z"/></svg>';
+const CORES={concl:"#1E8E3E", hoje:"#0E8F86", prazo:"#0F74B9", tec:"#E0A100", atraso:"#E8A0A0"};
 
-function setState(state, label){
-  const dot = el("loadDot");
-  dot.classList.remove("ok","bad","warn");
-  if(state==="ok") dot.classList.add("ok");
-  if(state==="bad") dot.classList.add("bad");
-  if(state==="warn") dot.classList.add("warn");
-  el("loadLabel").textContent = label;
+function setState(state,label){
+  el("loadDot").className=`dot ${state}`;
+  el("status").className=`status ${state}`;
+  el("loadLabel").textContent=label;
 }
-
-function showDiag(show, msg="", url=""){
-  const box = el("diag");
-  box.classList.toggle("show", !!show);
-  if(show){ el("diagMsg").textContent = msg||"—"; el("diagUrl").textContent = url||"—"; }
+function showDiag(show,msg="",url=""){
+  el("diag").classList.toggle("show",!!show);
+  if(show){ el("diagMsg").textContent=msg||"—"; el("diagUrl").textContent=url||"—"; }
 }
-
 function brDate(d){
   if(!(d instanceof Date)||isNaN(d)) return "—";
   return `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
@@ -574,10 +536,8 @@ function brTime(d){
   return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
 }
 function todayStart(){ const d=new Date(); d.setHours(0,0,0,0); return d; }
-
 function parseDate(x){
   if(x===null||x===undefined) return null;
-  if(x instanceof Date&&!isNaN(x)){ const d=new Date(x); d.setHours(0,0,0,0); return d; }
   const s=String(x).trim(); if(!s||s.startsWith("0000")) return null;
   let m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if(m) return new Date(`${m[1]}-${m[2]}-${m[3]}T00:00:00`);
@@ -585,233 +545,253 @@ function parseDate(x){
   if(m) return new Date(`${m[3]}-${String(m[2]).padStart(2,"0")}-${String(m[1]).padStart(2,"0")}T00:00:00`);
   const d=new Date(s); return isNaN(d)?null:d;
 }
-
 function escapeHtml(s){
-  return String(s||"").replace(/[&<>"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[c]));
+  return String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
 }
-
-/* =============================================
-   ACESSÓRIAS (dados.json)
-============================================= */
-async function loadAcessorias(){
-  const url=`${DADOS_URL}?t=${Date.now()}`; // fura o cache do GitHub Pages
-  let res;
-  try{
-    res = await fetch(url,{cache:"no-store"});
-  }catch(e){
-    throw {kind:"network",msg:"Sem conexão para buscar os dados do painel.",url:DADOS_URL};
-  }
-  if(!res.ok) throw {kind:"http",msg:`dados.json: HTTP ${res.status}. A rotina do GitHub já rodou?`,url:DADOS_URL};
+const chaveDia=(d)=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const somaDias=(d,n)=>{ const x=new Date(d); x.setDate(x.getDate()+n); return x; };
+function estrelasHtml(nota){
+  let h=""; for(let i=1;i<=5;i++) h+=ESTRELA.replace("<svg",`<svg${i<=Math.round(nota||0)?' class="cheia"':""}`); return h;
+}
+async function buscar(url){
+  const res=await fetch(`${url}?t=${Date.now()}`,{cache:"no-store"}); // fura o cache do GitHub Pages
+  if(!res.ok) throw {msg:`${url}: HTTP ${res.status}. A rotina do GitHub já rodou?`,url};
   return await res.json();
 }
 
+// O número grande sobe de 0 até o valor quando o bloco entra; uma contagem nova cancela a anterior.
+const contagens={};
+function contar(alvo,valor,animar,formato=fmt){
+  const minha=contagens[alvo.id]=(contagens[alvo.id]||0)+1;
+  if(!animar||!valor){ alvo.innerHTML=formato(valor); return; }
+  const ini=performance.now(), dur=700;
+  const passo=(t)=>{
+    if(minha!==contagens[alvo.id]) return;
+    const p=Math.min(1,(t-ini)/dur);
+    alvo.innerHTML=formato(valor*(1-Math.pow(1-p,3)));
+    if(p<1) requestAnimationFrame(passo); else alvo.innerHTML=formato(valor);
+  };
+  requestAnimationFrame(passo);
+}
+function entrar(hero,barra){
+  hero.classList.remove("entra"); void hero.offsetWidth; hero.classList.add("entra");
+  barra.classList.remove("rodando"); void barra.offsetWidth; barra.classList.add("rodando");
+}
+
+// Fila genérica: cada tela tem uma lista de posições que roda enquanto a tela está visível.
+function criarFila(secao,mostrar){
+  return {secao,mostrar,itens:[],i:0,timer:null,rodando:false,chave:null,
+    iniciar(){
+      this.parar();
+      const n=this.itens.length; if(!n) return;
+      const tempo=Math.max(TEMPO_MIN,Math.min(TEMPO_MAX,ROTACAO_MS/n));
+      el(this.secao).style.setProperty("--tempo",`${tempo/1000}s`);
+      this.rodando=true; this.i=0; this.mostrar(0,true);
+      if(n>1) this.timer=setInterval(()=>{ this.i=(this.i+1)%this.itens.length; this.mostrar(this.i,true); },tempo);
+    },
+    parar(){ clearInterval(this.timer); this.timer=null; this.rodando=false; },
+    // Dados novos: atualiza a posição atual sem animar; se a lista mudou, recomeça.
+    atualizar(itens,chave,tela){
+      this.itens=itens;
+      if(chave!==this.chave){ this.chave=chave; if(this.rodando){ this.iniciar(); return; } }
+      if(this.i>=itens.length) this.i=0;
+      if(this.rodando) this.mostrar(this.i,false);
+      else if(telaAtual===tela) this.iniciar();
+    }};
+}
+
 /* =============================================
-   RENDERIZAÇÃO
+   1. PAINEL OPERACIONAL (dados.json)
 ============================================= */
-const fmt = (n)=>Number(n||0).toLocaleString("pt-BR");
-const CORES={concl:"#16a34a", hoje:"#14b8a6", atraso:"#dc2626", tec:"#f59e0b", prazo:"#3b82f6", semPrazo:"#cbd5e1"};
-const DIAS_SEM=["dom","seg","ter","qua","qui","sex","sáb"];
-// Cada departamento fica em destaque entre 10 e 20 s (a tela dura 2 min: todos passam ao menos uma vez).
-const TEMPO_DEPTO_MIN=10000, TEMPO_DEPTO_MAX=20000;
-// Quantos departamentos aparecem na lista ao lado.
-const MAX_DEPTOS=8;
-
-const chaveDia=(d)=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-const somaDias=(d,n)=>{ const x=new Date(d); x.setDate(x.getDate()+n); return x; };
-
 // Entregas do Acessórias: {d: departamento, p: prazo técnico, a: data em que vira "Atrasada!",
 // e: dia da entrega, s: C=concluída | A=aberta | D=dispensada}. Datas AAAA-MM-DD.
 function computeTaskMetrics(rows){
   const t0=todayStart();
-  const novo=()=>({done:0,doneToday:0,doneBefore:0,open:0,late:0,tec:0,onTime:0,noDue:0,porPrazo:{},porEntrega:{}});
-  const deptMap=new Map();
-  // Dispensadas ficam fora da conta, como as "Desconsideradas" do Onvio.
+  const novo=(nome)=>({dept:nome,done:0,doneToday:0,open:0,late:0,tec:0,onTime:0,venceu:0,venceuFeita:0,antes:0,porPrazo:{},porEntrega:{}});
+  const mapa=new Map();
   for(const r of rows){
-    if(r.s==="D") continue;
+    if(r.s==="D") continue; // dispensadas ficam fora da conta
     // Departamento filho ("Contábil - Emilly", "Sucesso do Cliente - Nayla") entra no pai.
     const key=String(r.d||"").split(/\s+[-–]\s+/)[0].trim()||"Sem departamento";
-    if(!deptMap.has(key)) deptMap.set(key,novo());
-    const d=deptMap.get(key);
+    if(!mapa.has(key)) mapa.set(key,novo(key));
+    const d=mapa.get(key);
+    const prazoR=parseDate(r.p);
+    // "Venceu até hoje": prazo técnico até hoje (feita ou não) — a base justa do ritmo do mês.
+    if(prazoR&&prazoR<=t0){ d.venceu++; if(r.s==="C") d.venceuFeita++; }
     if(r.s==="C"){
       d.done++;
       const ent=parseDate(r.e);
-      if(ent){ const k=chaveDia(ent); d.porEntrega[k]=(d.porEntrega[k]||0)+1; }
-      if(ent&&ent.getTime()===t0.getTime()) d.doneToday++; else d.doneBefore++;
+      if(ent){ const k=chaveDia(ent); d.porEntrega[k]=(d.porEntrega[k]||0)+1; if(ent.getTime()===t0.getTime()) d.doneToday++; }
+      if(ent&&prazoR&&ent<prazoR) d.antes++;   // entregue antes do prazo técnico
       continue;
     }
     d.open++;
     const prazo=parseDate(r.p), atraso=parseDate(r.a)||prazo;
     if(prazo){ const k=chaveDia(prazo); d.porPrazo[k]=(d.porPrazo[k]||0)+1; }
-    if(!prazo) d.noDue++;
-    else if(atraso<t0) d.late++;   // passou da data de atraso: atrasada de verdade
-    else if(prazo<t0) d.tec++;     // só o prazo técnico venceu
+    if(prazo&&atraso<t0) d.late++;       // passou da data de atraso: atrasada de verdade
+    else if(prazo&&prazo<t0) d.tec++;    // só o prazo técnico venceu
     else d.onTime++;
   }
-  return {deptMap};
-}
-
-/* ---- Um departamento em destaque por vez (como os comentários da tela de Satisfação) ---- */
-const opCar={lista:[],i:0,timer:null,rodando:false,chave:null};
-let dChart=null;
-
-function renderDepartments(m){
-  const lista=[...m.deptMap.entries()].map(([dept,c])=>({dept,...c}))
-    .sort((a,b)=>(b.open-a.open)||(b.late-a.late)).slice(0,MAX_DEPTOS);
-
-  // Números do escritório inteiro
-  const soma=(k)=>lista.reduce((s,x)=>s+(x[k]||0),0);
-  const done=soma("done"), open=soma("open"), total=done+open;
-  const pct=total?done*100/total:0;
-  el("opPct").textContent=`${Math.round(pct)}%`;
-  el("opPctSub").textContent=`${fmt(done)} de ${fmt(total)} entregas`;
-  const anel=el("opAnel"), C=2*Math.PI*42;
-  anel.style.strokeDasharray=C; anel.style.strokeDashoffset=C*(1-pct/100);
-  el("opHoje").textContent=fmt(soma("doneToday"));
-  const ontem=chaveDia(somaDias(todayStart(),-1));
-  el("opHojeSub").textContent=`ontem: ${fmt(lista.reduce((s,x)=>s+(x.porEntrega[ontem]||0),0))}`;
-  el("opPrazo").textContent=fmt(soma("onTime")+soma("noDue"));
-  el("opTec").textContent=fmt(soma("tec"));
-  el("opAtraso").textContent=fmt(soma("late"));
-  el("opKpiAtraso").classList.toggle("alerta",soma("late")>0);
-  el("opKpiTec").classList.toggle("aviso",soma("tec")>0);
-
-  // Lista ao lado
-  el("opLista").innerHTML=lista.map((x,k)=>{
-    const t=x.done+x.open, p=t?Math.round(x.done*100/t):0;
-    const chips=[x.late?`<span class="r">● ${fmt(x.late)} atraso</span>`:"",
-                 x.tec?`<span class="a">● ${fmt(x.tec)} pz. técnico</span>`:"",
-                 x.doneToday?`<span class="t">+${fmt(x.doneToday)} hoje</span>`:""].join("")
-               ||`<span>${fmt(x.open)} em aberto</span>`;
-    return `<div class="opItem${x.late?" atraso":""}" data-k="${k}">
-      <div class="opItemTopo"><span>${escapeHtml(x.dept)}</span><b>${p}%</b></div>
-      <div class="trilho"><i style="width:${p}%"></i></div>
-      <div class="opChips">${chips}</div></div>`;
-  }).join("");
-
-  const chave=lista.map(x=>x.dept).join("|");
-  if(chave!==opCar.chave){
-    opCar.chave=chave; opCar.i=0;
-    el("opFila").innerHTML=lista.map((x,k)=>`<span class="chip${x.late?" atraso":""}" data-k="${k}">${escapeHtml(x.dept)}</span>`).join("");
-  }else{
-    lista.forEach((x,k)=>el("opFila").children[k]?.classList.toggle("atraso",x.late>0));
+  const lista=[...mapa.values()].sort((a,b)=>(b.open-a.open)||(b.late-a.late)).slice(0,MAX_DEPTOS);
+  const todos=novo("Escritório");
+  for(const x of lista){
+    for(const k of ["done","doneToday","open","late","tec","onTime","venceu","venceuFeita","antes"]) todos[k]+=x[k];
+    for(const [k,v] of Object.entries(x.porPrazo)) todos.porPrazo[k]=(todos.porPrazo[k]||0)+v;
+    for(const [k,v] of Object.entries(x.porEntrega)) todos.porEntrega[k]=(todos.porEntrega[k]||0)+v;
   }
-  opCar.lista=lista;
-  if(opCar.i>=lista.length) opCar.i=0;
-  // Dados novos: atualiza o destaque atual sem animar; a fila só começa se a tela estiver visível.
-  if(opCar.rodando) mostrarDepto(opCar.i,false);
-  else if(telaAtual==="operacional") opIniciar();
+  return {todos,lista};
 }
 
-function opIniciar(){
-  opParar();
-  const n=opCar.lista.length;
-  if(!n) return;
-  const tempo=Math.max(TEMPO_DEPTO_MIN,Math.min(TEMPO_DEPTO_MAX,ROTACAO_MS/n));
-  el("telaOperacional").style.setProperty("--tempo",`${tempo/1000}s`);
-  opCar.rodando=true; opCar.i=0;
-  mostrarDepto(0,true);
-  if(n>1) opCar.timer=setInterval(()=>{ opCar.i=(opCar.i+1)%opCar.lista.length; mostrarDepto(opCar.i,true); },tempo);
+const opFila=criarFila("telaOperacional",mostrarDepto);
+
+function renderOperacional({todos,lista}){
+  const t=todos.done+todos.open;
+  el("opEscritorio").innerHTML=`<h2>Escritório</h2>
+    <div><b style="color:var(--verde)">${fmt(todos.done)}</b><span>concluídas de ${fmt(t)} no mês</span></div>
+    <div><b style="color:var(--agua)">${fmt(todos.doneToday)}</b><span>entregues hoje</span></div>
+    <div><b>${fmt(todos.onTime)}</b><span>no prazo</span></div>
+    <div class="neutro"><b>${fmt(todos.tec)}</b><span>prazo técnico vencido</span></div>
+    <div class="neutro"><b>${fmt(todos.late)}${todos.late?'<i class="ponto"></i>':""}</b><span>atrasadas</span></div>`;
+  el("opChips").innerHTML=lista.map(x=>`<span class="chip">${escapeHtml(x.dept)}${x.late?'<i class="ponto"></i>':""}</span>`).join("");
+  opFila.atualizar(lista,lista.map(x=>x.dept).join("|"),"operacional");
 }
 
-function opParar(){
-  clearInterval(opCar.timer);
-  opCar.timer=null; opCar.rodando=false;
-}
-
-function colunas(alvo,dias,valores,cor){
-  const maior=Math.max(1,...dias.map(d=>valores[chaveDia(d)]||0));
+function colunas(alvo,diasLista,valores,cor,animar){
+  const maior=Math.max(1,...diasLista.map(d=>valores[chaveDia(d)]||0));
   const hoje=chaveDia(todayStart());
-  alvo.innerHTML=dias.map(d=>{
-    const v=valores[chaveDia(d)]||0, fds=d.getDay()===0||d.getDay()===6;
-    return `<div class="col${v?"":" zero"}${chaveDia(d)===hoje?" hoje":""}${fds?" fds":""}">
+  alvo.innerHTML=diasLista.map(d=>{
+    const v=valores[chaveDia(d)]||0, fds=d.getDay()===0||d.getDay()===6, eHoje=chaveDia(d)===hoje;
+    return `<div class="col${v?"":" zero"}${eHoje?" hoje":""}${fds?" fds":""}">
       <b>${fmt(v)}</b><div class="colBarra"><i style="--cor:${cor}" data-h="${v/maior*100}"></i></div>
-      <span>${chaveDia(d)===hoje?"hoje":`${DIAS_SEM[d.getDay()]} ${String(d.getDate()).padStart(2,"0")}`}</span></div>`;
+      <span>${eHoje?"hoje":`${DIAS_SEM[d.getDay()]} ${String(d.getDate()).padStart(2,"0")}`}</span></div>`;
   }).join("");
+  setTimeout(()=>alvo.querySelectorAll(".colBarra i").forEach(b=>{ b.style.height=`${b.dataset.h}%`; }),animar?450:0);
 }
 
 function mostrarDepto(i,animar){
-  const x=opCar.lista[i];
-  if(!x) return;
-  const dest=el("destaque");
-  el("dNome").textContent=x.dept;
-  const selo=el("dSelo");
-  if(x.late){ selo.className="dSelo atraso"; selo.textContent=`⚠ ${fmt(x.late)} em atraso`; }
-  else if(x.tec){ selo.className="dSelo tec"; selo.textContent=`⏱ ${fmt(x.tec)} prazo técnico`; }
-  else { selo.className="dSelo ok"; selo.textContent="✓ Em dia"; }
-  dest.classList.toggle("alert",x.late>0);
-  dest.classList.toggle("warn",x.tec>0);
-
-  const t=x.done+x.open;
-  el("dPct").textContent=`${t?Math.round(x.done*100/t):0}%`;
-  el("dHojeTxt").textContent=x.doneToday?`+${fmt(x.doneToday)} hoje`:"";
-
-  const nums=[["Hoje",x.doneToday,"c-teal",CORES.hoje],["Concluídas",x.doneBefore,"c-green",CORES.concl],
-              ["No prazo",x.onTime+x.noDue,"c-blue",CORES.prazo],["Pz. técnico",x.tec,"c-amber",CORES.tec],
-              ["Atraso",x.late,"c-red",CORES.atraso]];
-  el("dNums").innerHTML=nums.map(([rot,v,cls,cor])=>
-    `<div class="dNum${v?"":" zero"}"><b class="${cls}">${fmt(v)}</b><span style="--dot:${cor}">${rot}</span></div>`).join("");
-
+  const x=opFila.itens[i]; if(!x) return;
+  const total=x.done+x.open||1;
+  el("opNome").textContent=x.dept;
+  const selo=el("opSelo");
+  selo.className=`opSelo${x.late?"":" ok"}`;
+  selo.innerHTML=x.late?`<i class="ponto"></i>${fmt(x.late)} ${x.late===1?"atrasada":"atrasadas"}`:"Nenhuma atrasada";
+  contar(el("opNum"),x.done,animar,(v)=>fmt(Math.round(v)));
+  el("opHoje").textContent=x.doneToday?`+${fmt(x.doneToday)} hoje`:"";
+  // Rosca: concluídas, no prazo, prazo técnico vencido e atrasadas (soma = entregas do mês)
+  const C=2*Math.PI*50, fatias=[[x.done,CORES.concl],[x.onTime,CORES.prazo],[x.tec,CORES.tec],[x.late,CORES.atraso]];
+  let ac=0;
+  el("opFatias").innerHTML=fatias.map(([v,cor])=>{
+    const len=v/total*C, off=-ac; ac+=len;
+    return `<circle cx="60" cy="60" r="50" stroke="${cor}" stroke-dasharray="${animar?0:len} ${C}" stroke-dashoffset="${off}" data-len="${len}"/>`;
+  }).join("");
+  if(animar) setTimeout(()=>el("opFatias").querySelectorAll("circle").forEach(c=>c.setAttribute("stroke-dasharray",`${c.dataset.len} ${C}`)),60);
+  const pct=(v)=>`${Math.round(v*100/total)}%`;
+  const linhas=[["Concluídas",x.done,CORES.concl,pct(x.done),true],["Entregues hoje",x.doneToday,CORES.hoje,"",false],
+                ["No prazo",x.onTime,CORES.prazo,pct(x.onTime),false],["Prazo técnico vencido",x.tec,CORES.tec,pct(x.tec),false],
+                ["Atrasadas",x.late,CORES.atraso,pct(x.late),false]];
+  el("opLegenda").innerHTML=linhas.map(([rot,v,cor,p,princ])=>
+    `<div class="leg${v?"":" zero"}${princ?" principal":""}"><i style="--cor:${cor}"></i><span>${rot}</span><b>${fmt(v)}</b><small>${p}</small></div>`).join("");
   const t0=todayStart();
-  colunas(el("dProx"),[0,1,2,3,4,5,6].map(n=>somaDias(t0,n)),x.porPrazo,CORES.prazo);
-  colunas(el("dUlt"),[-6,-5,-4,-3,-2,-1,0].map(n=>somaDias(t0,n)),x.porEntrega,CORES.concl);
-  setTimeout(()=>document.querySelectorAll("#destaque .colBarra i").forEach(b=>{ b.style.height=`${b.dataset.h}%`; }),animar?500:0);
-
-  const dados=[x.doneBefore,x.doneToday,x.late,x.tec,x.onTime,x.noDue];
-  if(!dChart){
-    dChart=new Chart(el("dChart").getContext("2d"),{
-      type:"doughnut",
-      data:{datasets:[{data:dados,backgroundColor:[CORES.concl,CORES.hoje,CORES.atraso,CORES.tec,CORES.prazo,CORES.semPrazo],borderWidth:0,spacing:2}]},
-      options:{responsive:true,maintainAspectRatio:false,cutout:"72%",animation:{duration:900},
-               layout:{padding:4},plugins:{legend:{display:false},tooltip:{enabled:false}},events:[]}
-    });
-  }else{
-    dChart.data.datasets[0].data=dados;
-    if(animar) dChart.reset();
-    dChart.update();
-  }
-
-  document.querySelectorAll("#opLista .opItem").forEach((n,k)=>n.classList.toggle("ativo",k===i));
-  document.querySelectorAll("#opFila .chip").forEach((n,k)=>n.classList.toggle("ativa",k===i));
-  if(animar){
-    dest.classList.remove("entra"); void dest.offsetWidth; dest.classList.add("entra");
-    const b=el("opBarra"); b.classList.remove("rodando"); void b.offsetWidth; b.classList.add("rodando");
-  }
-}
-
-function mesLabel(ym){
-  const m=String(ym||"").match(/^(\d{4})-(\d{2})/);
-  return m?`${m[2]}/${m[1]}`:"—";
+  colunas(el("opProx"),[0,1,2,3,4,5,6].map(n=>somaDias(t0,n)),x.porPrazo,CORES.prazo,animar);
+  colunas(el("opUlt"),[-6,-5,-4,-3,-2,-1,0].map(n=>somaDias(t0,n)),x.porEntrega,CORES.concl,animar);
+  document.querySelectorAll("#opChips .chip").forEach((n,k)=>n.classList.toggle("ativa",k===i));
+  if(animar) entrar(el("opCard"),el("opBarra"));
 }
 
 /* =============================================
-   CSAT (csat.json: Bradial + Acessórias)
+   2. SOLICITAÇÕES (solicitacoes.json)
 ============================================= */
-const MESES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+const STATUS_FLUXO=[["Nova","Novas"],["Resolvendo","Resolvendo"],["Cliente","Com o cliente"],["Finalizada","Finalizadas"]];
+const solFila=criarFila("telaSol",mostrarSol);
+
+function espera(h){
+  if(h<1) return "agora";
+  if(h<24) return `${Math.floor(h)} h`;
+  const d=Math.floor(h/24); return `${d} ${dias(d)}`;
+}
+
+// Escritório inteiro + um item por departamento (externas e internas juntas).
+function solDeptos(s){
+  const novo=(nome)=>({depto:nome,sem:0,pend:[],mes:{total:0,respondidas:0,nao_respondidas:0,status:{}}});
+  const mapa=new Map();
+  for(const [tipo,g] of [["externa",s.externas],["interna",s.internas]]){
+    for(const d of g?.por_depto||[]){
+      if(!mapa.has(d.depto)) mapa.set(d.depto,novo(d.depto));
+      const x=mapa.get(d.depto);
+      x.sem+=d.sem_resposta;
+      for(const p of d.pendentes||[]) x.pend.push({...p,tipo,depto:d.depto});
+    }
+  }
+  for(const m of s.mes?.por_depto||[]){
+    if(!mapa.has(m.depto)) mapa.set(m.depto,novo(m.depto));
+    mapa.get(m.depto).mes=m;
+  }
+  const lista=[...mapa.values()].filter(x=>x.sem||x.mes.total);
+  lista.forEach(x=>x.pend.sort((a,b)=>b.horas-a.horas));
+  lista.sort((a,b)=>(b.sem-a.sem)||(b.mes.total-a.mes.total)||a.depto.localeCompare(b.depto));
+  const todos=novo("Escritório");
+  todos.escritorio=true;
+  todos.mes={...(s.mes||{}),status:s.mes?.status||{}};
+  for(const x of lista){ todos.sem+=x.sem; todos.pend.push(...x.pend); }
+  todos.pend.sort((a,b)=>b.horas-a.horas);
+  return [todos,...lista];
+}
+
+function renderSolicitacoes(s){
+  const deptos=solDeptos(s);
+  // O escritório aparece uma vez; cada departamento pode ter mais de uma página.
+  const itens=[{d:deptos[0],k:0,p:0,paginas:1}];
+  deptos.forEach((d,k)=>{
+    if(!k) return;
+    const paginas=Math.max(1,Math.ceil(d.pend.length/SOL_POR_PAGINA));
+    for(let p=0;p<paginas;p++) itens.push({d,k,p,paginas});
+  });
+  el("solChips").innerHTML=deptos.map(d=>`<span class="chip${d.sem?" alerta":""}">${escapeHtml(d.depto)}${d.sem?`<b>${fmt(d.sem)}</b>`:""}</span>`).join("");
+  solFila.atualizar(itens,deptos.map(d=>`${d.depto}:${d.sem}:${d.pend.length}`).join("|"),"solicitacoes");
+}
+
+function mostrarSol(i,animar){
+  const it=solFila.itens[i]; if(!it) return;
+  const d=it.d, m=d.mes||{};
+  el("solHero").classList.toggle("alerta",d.sem>0);
+  el("solNome").innerHTML=`${escapeHtml(d.depto)}${it.paginas>1?`<small>parte ${it.p+1} de ${it.paginas}</small>`:""}`;
+  contar(el("solNum"),d.sem,animar,(v)=>fmt(Math.round(v)));
+  el("solNumTxt").innerHTML=d.sem
+    ?`${d.sem===1?"solicitação sem":"solicitações sem"} resposta<em>a mais antiga espera há ${espera(d.pend[0].horas)}</em>`
+    :`nenhuma sem resposta<em>tudo respondido por aqui</em>`;
+  el("solLinha").innerHTML=m.total
+    ?`<strong>${fmt(m.respondidas)}</strong> de <strong>${fmt(m.total)}</strong> respondidas em ${mesExtenso()}`
+    :`Nenhuma solicitação aberta neste mês`;
+  el("solBarraMes").style.width=`${m.total?m.respondidas*100/m.total:0}%`;
+  // Os status são o caminho de uma solicitação, por isso as setas; "Novas" em destaque.
+  el("solTiles").innerHTML=STATUS_FLUXO.map(([k,rot],j)=>
+    `${j?'<span class="seta" aria-hidden="true">→</span>':""}<div class="tile${k==="Nova"?" destaque":""}"><b>${fmt(m.status?.[k]||0)}</b><span>${rot}</span></div>`).join("");
+
+  const pag=d.pend.slice(it.p*SOL_POR_PAGINA,(it.p+1)*SOL_POR_PAGINA);
+  el("solTit").innerHTML=d.sem?`Esperando a nossa resposta<b>${fmt(d.sem)}</b>`:"Esperando a nossa resposta";
+  const resto=d.pend.length-(it.p+1)*SOL_POR_PAGINA;
+  el("solLista").innerHTML=pag.length
+    ?pag.map(x=>{
+        const f=x.horas<24?"f1":x.horas<=72?"f2":"f3";
+        const sub=d.escritorio?`${x.depto}, ${x.tipo}`:x.tipo;
+        return `<div class="req ${f}"><span class="id">#${escapeHtml(x.id)}</span>
+          <span class="cli">${escapeHtml(x.cliente||"Sem cliente")}<small>${escapeHtml(sub)}</small></span><em>${espera(x.horas)}</em></div>`;
+      }).join("")+(resto>0?`<div class="mais">e mais ${fmt(resto)} na sequência</div>`:"")
+    :`<div class="nada"><b>✓</b><span>Ninguém esperando resposta</span></div>`;
+  document.querySelectorAll("#solChips .chip").forEach((n,k)=>n.classList.toggle("ativa",k===it.k));
+  if(animar) entrar(el("solHero"),el("solBarra"));
+}
+
+/* =============================================
+   3. SATISFAÇÃO DO CLIENTE (csat.json) — design "Avaliações na TV"
+   Fila: Escritório e cada setor; em cada um, os comentários passam um a um.
+============================================= */
+const ICONE_PESSOA='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7.6" r="4.4"/><path d="M3.2 21.4c0-4.9 3.9-8.3 8.8-8.3s8.8 3.4 8.8 8.3c0 .5-.4.9-.9.9H4.1c-.5 0-.9-.4-.9-.9z"/></svg>';
+const CORES_AVATAR=["#0896F7","#0F74B9","#0F37F5","#1AA88A","#7B5CE0","#E0752F"];
 function mesCurto(ym){
   const m=String(ym||"").match(/^(\d{4})-(\d{2})/);
   return m?`${MESES[Number(m[2])-1]}/${m[1].slice(2)}`:"—";
 }
-const num=(v,casas=0)=>v===null||v===undefined?"—":Number(v).toLocaleString("pt-BR",{minimumFractionDigits:casas,maximumFractionDigits:casas});
-const ESTRELA='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5L2.6 9.4l6.5-.9z"/></svg>';
-const ICONE_PESSOA='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7.6" r="4.4"/><path d="M3.2 21.4c0-4.9 3.9-8.3 8.8-8.3s8.8 3.4 8.8 8.3c0 .5-.4.9-.9.9H4.1c-.5 0-.9-.4-.9-.9z"/></svg>';
-const CORES_AVATAR=["#0896F7","#0F74B9","#0F37F5","#1AA88A","#7B5CE0","#E0752F"];
-// Quanto tempo cada comentário fica na tela (a tela de CSAT dura 2 min).
-const TEMPO_COMENTARIO=9000;
-// Setor com média abaixo disso fica em vermelho no quadro.
-const MEDIA_ALERTA=4;
-
-function estrelasHtml(nota){
-  let h="";
-  for(let i=1;i<=5;i++) h+=ESTRELA.replace("<svg",`<svg${i<=Math.round(nota||0)?' class="cheia"':""}`);
-  return h;
-}
-
-async function loadCsat(){
-  const res=await fetch(`${CSAT_URL}?t=${Date.now()}`,{cache:"no-store"});
-  if(!res.ok) throw new Error(`csat.json: HTTP ${res.status}`);
-  return await res.json();
-}
-
 // Variação contra o mês anterior, com seta e cor.
 function delta(atual,anterior,{casas=0,unid="",escala=1,rotulo}){
   if(atual===null||atual===undefined||anterior===null||anterior===undefined) return `${rotulo}: —`;
@@ -822,23 +802,51 @@ function delta(atual,anterior,{casas=0,unid="",escala=1,rotulo}){
   return `<b class="${cls}">${seta} ${num(Math.abs(d),casas)}${unid}</b> vs ${rotulo}`;
 }
 
+let csInfo={rotAnt:"—",mes:null};
+const csFila=criarFila("telaCsat",mostrarEscopo);
+const pararEscopos=csFila.parar.bind(csFila);
+csFila.parar=function(){ pararEscopos(); carrosselParar(); };
+
 function renderCsat(c){
   const atual=c.atual||{}, ant=c.anterior||{};
-  const rotAnt=mesCurto(ant.periodo?.[0]);
-  const vazio=!atual.respostas;
   // Começo de mês sem avaliações: os números mostram o mês anterior, com aviso.
-  const base=vazio?ant:atual;
-  el("csatGrid").classList.toggle("vazio",vazio);
-  el("avisoMes").textContent=vazio?`Sem avaliações em ${mesCurto(c.mes)} até agora · números de ${rotAnt}`:"";
+  const vazio=!atual.respostas, base=vazio?ant:atual;
+  const antSetor=new Map((ant.por_setor||[]).map(x=>[x.setor,x]));
+  const coms=atual.comentarios||[];
+  csInfo={rotAnt:mesCurto(ant.periodo?.[0]),mes:c.mes,vazio};
+  const escopos=[{nome:"Escritório",base,ant:vazio?null:ant,coms}];
+  for(const st of (base.por_setor||[]).filter(x=>x.respostas)){
+    escopos.push({nome:st.setor,setor:st.setor,ant:vazio?null:antSetor.get(st.setor),coms:coms.filter(x=>x.setor===st.setor),
+                  base:{...st,por_canal:{[st.canal||"Acessórias"]:{respostas:st.respostas}}}});
+  }
+  // Quadro por setor (o setor em destaque fica marcado)
+  el("setorLista").innerHTML=(base.por_setor||[]).map(s=>{
+    const t=s.taxa_resposta;
+    return `<div class="setor" data-setor="${escapeHtml(s.setor)}">
+      <div class="setorTopo"><span class="setorNome">${escapeHtml(s.setor)}<small>${escapeHtml(s.canal||"")}</small></span>
+        <span class="setorMedia ${s.media!=null&&s.media<MEDIA_ALERTA?"ruim":""}">${s.media==null?"sem nota":`${num(s.media,1)} <i>★</i>`}</span></div>
+      <div class="setorTaxa"><span><b>${num(s.respostas)}</b>${s.oportunidades?` de ${num(s.oportunidades)}`:""}</span>
+        <div class="trilho"><i style="width:${Math.min((t||0)*100,100)}%"></i></div><b>${t==null?"—":`${num(t*100)}%`}</b></div>
+    </div>`;
+  }).join("")||`<div class="setor">Sem avaliações no mês.</div>`;
+  el("csChips").innerHTML=escopos.map(e=>`<span class="chip">${escapeHtml(e.nome)}</span>`).join("");
+  csFila.atualizar(escopos,JSON.stringify(escopos.map(e=>[e.nome,e.base.respostas,e.coms.map(x=>x.texto)])),"csat");
+}
 
-  const kpi=(k,html)=>{ document.querySelector(`[data-kpi="${k}"]`).innerHTML=html; };
-  const dl=(k,html)=>{ document.querySelector(`[data-delta="${k}"]`).innerHTML=html; };
+function mostrarEscopo(i,animar){
+  const e=csFila.itens[i]; if(!e) return;
+  const base=e.base||{}, ant=e.ant, rotAnt=csInfo.rotAnt;
+  el("csEscopo").textContent=e.nome==="Escritório"?"Satisfação do cliente":`Satisfação do cliente: ${e.nome}`;
+  el("csatGrid").classList.toggle("vazio",!!csInfo.vazio);
+  el("avisoMes").textContent=csInfo.vazio?`Sem avaliações em ${mesCurto(csInfo.mes)} até agora · números de ${rotAnt}`:"";
+
+  const kpi=(k,html)=>{ document.querySelector(`#telaCsat [data-kpi="${k}"]`).innerHTML=html; };
+  const dl=(k,html)=>{ document.querySelector(`#telaCsat [data-delta="${k}"]`).innerHTML=html; };
   const total=base.respostas||0;
   kpi("media", num(base.media,2));
   el("mediaEstrelas").innerHTML=base.media?estrelasHtml(base.media):"";
   kpi("resp", num(total));
-  const canais=Object.entries(base.por_canal||{}).map(([k,v])=>`${k} ${num(v.respostas||0)}`).join(" · ");
-  el("respCanais").textContent=canais;
+  el("respCanais").textContent=Object.entries(base.por_canal||{}).map(([k,v])=>`${k} ${num(v.respostas||0)}`).join(" · ");
   el("mediaSub").textContent=total?`de 5, em ${num(total)} ${total===1?"avaliação":"avaliações"}`:"";
   kpi("sat", num(base.satisfeitos ?? 0));
   el("satPct").textContent=base.satisfeitos_pct==null?"":`${num(base.satisfeitos_pct)}%`;
@@ -848,57 +856,38 @@ function renderCsat(c){
   const anel=el("anelValor"), C=2*Math.PI*42;
   anel.style.strokeDasharray=C;
   anel.style.strokeDashoffset=C*(1-Math.min(taxa||0,1));
-  if(vazio){
+  if(csInfo.vazio){
     for(const k of ["sat","media","resp","taxa"]) dl(k,`${rotAnt} completo`);
   }else{
-    dl("media", delta(atual.media,ant.media,{casas:2,rotulo:rotAnt}));
+    dl("media", delta(base.media,ant?.media,{casas:2,rotulo:rotAnt}));
     // Mês em andamento contra mês fechado: quantidade sem seta, só a referência.
-    dl("resp", `${rotAnt}: <b>${num(ant.respostas||0)}</b> no mês todo`);
-    dl("sat", delta(atual.satisfeitos_pct,ant.satisfeitos_pct,{unid:" p.p.",rotulo:rotAnt}));
-    dl("taxa", delta(atual.taxa_resposta,ant.taxa_resposta,{casas:1,unid:" p.p.",escala:100,rotulo:rotAnt}));
+    dl("resp", `${rotAnt}: <b>${num(ant?.respostas||0)}</b> no mês todo`);
+    dl("sat", delta(base.satisfeitos_pct,ant?.satisfeitos_pct,{unid:" p.p.",rotulo:rotAnt}));
+    dl("taxa", delta(base.taxa_resposta,ant?.taxa_resposta,{casas:1,unid:" p.p.",escala:100,rotulo:rotAnt}));
   }
-
   const dist=base.distribuicao||{};
   el("distribuicao").innerHTML=[5,4,3,2,1].map(n=>{
     const q=dist[n]||0, p=total?q*100/total:0;
     return `<div class="notaCol"><div class="rotulo"><span>${n}${ESTRELA}</span><em>${num(p)}%</em></div>
       <div class="trilho"><i class="${n<=2&&q?"baixa":""}" style="width:${p}%"></i></div><div class="qtd">${num(q)} ${q===1?"nota":"notas"}</div></div>`;
   }).join("");
-
-  // Quadro por setor: média das notas e quantos atendimentos encerrados viraram avaliação.
-  const setores=base.por_setor||[];
-  el("setorLista").innerHTML=setores.length?setores.map(s=>{
-    const t=s.taxa_resposta;
-    return `<div class="setor">
-      <div class="setorTopo"><span class="setorNome">${escapeHtml(s.setor)}<small>${escapeHtml(s.canal||"")}</small></span>
-        <span class="setorMedia ${s.media!=null&&s.media<MEDIA_ALERTA?"ruim":""}">${s.media==null?"sem nota":`${num(s.media,1)} <i>★</i>`}</span></div>
-      <div class="setorTaxa"><span><b>${num(s.respostas)}</b>${s.oportunidades?` de ${num(s.oportunidades)}`:""}</span>
-        <div class="trilho"><i style="width:${Math.min((t||0)*100,100)}%"></i></div><b>${t==null?"—":`${num(t*100)}%`}</b></div>
-    </div>`;
-  }).join(""):`<div class="setor">Sem avaliações no mês.</div>`;
   const baixas=(dist[1]||0)+(dist[2]||0)+(dist[3]||0);
   el("baixas").className=`baixas${baixas?" tem":""}`;
   el("baixas").textContent=baixas?`⚠ ${num(baixas)} ${baixas===1?"nota":"notas"} de 1 a 3 no mês: retornar ao cliente`:"✓ Nenhuma nota de 1 a 3 no mês";
-
-  carrosselDefinir(atual.comentarios||[], c.mes);
+  document.querySelectorAll("#setorLista .setor").forEach(n=>n.classList.toggle("ativo",!!e.setor&&n.dataset.setor===e.setor));
+  document.querySelectorAll("#csChips .chip").forEach((n,k)=>n.classList.toggle("ativa",k===i));
+  carrosselDefinir(e.coms);
 }
 
-/* ---- Comentários um a um (modelo "Avaliações na TV") ---- */
-const carrossel={lista:[],i:0,timer:null,chave:null,mes:null};
+/* ---- Comentários um a um, do escopo em destaque ---- */
+const carrossel={lista:[],i:0,timer:null};
 
-function carrosselDefinir(lista,mes){
-  const chave=JSON.stringify(lista);
-  if(chave===carrossel.chave) return;  // dados iguais: não reinicia a fila a cada minuto
-  Object.assign(carrossel,{lista,mes,chave});
-  el("fila").innerHTML=lista.map((_,k)=>`<div class="mini" style="--cor:${CORES_AVATAR[k%CORES_AVATAR.length]}">${ICONE_PESSOA}</div>`).join("");
-  if(telaAtual==="csat") carrosselIniciar();
-}
-
-function carrosselIniciar(){
+function carrosselDefinir(lista){
   carrosselParar();
-  carrossel.i=0;
+  carrossel.lista=lista; carrossel.i=0;
+  el("fila").innerHTML=lista.map((_,k)=>`<div class="mini" style="--cor:${CORES_AVATAR[k%CORES_AVATAR.length]}">${ICONE_PESSOA}</div>`).join("");
   mostrarComentario(0);
-  if(carrossel.lista.length>1) carrossel.timer=setInterval(proximoComentario,TEMPO_COMENTARIO);
+  if(lista.length>1) carrossel.timer=setInterval(proximoComentario,TEMPO_COMENTARIO);
 }
 
 function carrosselParar(){
@@ -912,16 +901,16 @@ function mostrarComentario(i){
   const txt=el("comentario");
   if(!a){
     txt.className="comentario";
-    txt.textContent=`Nenhum comentário em ${mesCurto(carrossel.mes)} até agora`;
+    txt.textContent=`Nenhuma avaliação em ${mesExtenso()} até agora`;
     return;
   }
   cena.style.setProperty("--cor",CORES_AVATAR[i%CORES_AVATAR.length]);
   el("avatar").innerHTML=ICONE_PESSOA;
-  // Sem nome do cliente (site público): o destaque é o setor que atendeu.
-  el("nome").textContent=a.setor||"Cliente";
-  el("origem").textContent=`via ${a.canal||"WhatsApp"} · ${brDate(parseDate(a.data))}`;
-  txt.textContent=a.texto;
-  txt.className=`comentario${a.texto.length>120?" muitoLongo":a.texto.length>70?" longo":""}`;
+  // Nome do cliente (pedido do Kaio em 16/10/2026); sem nome, fica o setor que atendeu.
+  el("nome").textContent=a.cliente||a.setor||"Cliente";
+  el("origem").textContent=`${a.cliente?`${a.setor}, `:""}via ${a.canal||"WhatsApp"}, ${brDate(parseDate(a.data))}`;
+  txt.textContent=a.texto||`Avaliou o atendimento com nota ${a.nota}`;
+  txt.className=`comentario${a.texto?"":" semTexto"}${(a.texto||"").length>120?" muitoLongo":(a.texto||"").length>70?" longo":""}`;
   el("estrelas").innerHTML=estrelasHtml(a.nota);
   el("estrelas").querySelectorAll("svg").forEach((s,k)=>{ s.style.animationDelay=`${.6+(k+1)*.12}s`; });
   document.querySelectorAll("#fila .mini").forEach((m,k)=>m.classList.toggle("ativa",k===i));
@@ -936,171 +925,32 @@ function proximoComentario(){
 }
 
 /* =============================================
-   SOLICITAÇÕES SEM RESPOSTA (solicitacoes.json)
-============================================= */
-async function loadSolicitacoes(){
-  const res=await fetch(`${SOL_URL}?t=${Date.now()}`,{cache:"no-store"});
-  if(!res.ok) throw new Error(`solicitacoes.json: HTTP ${res.status}`);
-  return await res.json();
-}
-
-const dias=(n)=>n===1?"dia":"dias";
-// Quantas solicitações cabem no destaque; acima disso o departamento ocupa mais de uma vez na fila.
-const SOL_POR_PAGINA=10;
-// Cada departamento (ou página) fica entre 8 e 20 s; a tela toda dura 2 min.
-const TEMPO_SOL_MIN=8000, TEMPO_SOL_MAX=20000;
-const solCar={slots:[],deptos:[],i:0,timer:null,rodando:false,chave:null};
-
-function espera(h){
-  if(h<1) return "agora há pouco";
-  if(h<24) return `há ${Math.floor(h)} h`;
-  const d=Math.floor(h/24); return `há ${d} ${dias(d)}`;
-}
-
-// Junta externas e internas por departamento.
-function solDeptos(s){
-  const mapa=new Map();
-  for(const [tipo,g] of [["externa",s.externas],["interna",s.internas]]){
-    for(const d of g?.por_depto||[]){
-      if(!mapa.has(d.depto)) mapa.set(d.depto,{depto:d.depto,abertas:0,sem:0,ext:0,int:0,mais3:0,antiga:null,pend:[]});
-      const x=mapa.get(d.depto);
-      x.abertas+=d.abertas; x.sem+=d.sem_resposta; x[tipo==="externa"?"ext":"int"]+=d.sem_resposta;
-      x.mais3+=d.faixas?.mais3||0;
-      if(d.sem_resposta) x.antiga=Math.max(x.antiga||0,d.mais_antiga_dias||0);
-      for(const p of d.pendentes||[]) x.pend.push({...p,tipo});
-    }
-  }
-  const lista=[...mapa.values()];
-  lista.forEach(x=>x.pend.sort((a,b)=>b.horas-a.horas));
-  return lista.sort((a,b)=>(b.sem-a.sem)||(b.abertas-a.abertas)||a.depto.localeCompare(b.depto));
-}
-
-function renderSolicitacoes(s){
-  const ext=s.externas||{}, int=s.internas||{};
-  el("solExt").textContent=fmt(ext.sem_resposta);
-  el("solExtSub").textContent=`de ${fmt(ext.abertas)} externas em aberto`;
-  el("solInt").textContent=fmt(int.sem_resposta);
-  el("solIntSub").textContent=`de ${fmt(int.abertas)} internas em aberto`;
-  el("solExt").className=ext.sem_resposta?"c-red":"c-green";
-  el("solInt").className=int.sem_resposta?"c-red":"c-green";
-  const mais3=(ext.faixas?.mais3||0)+(int.faixas?.mais3||0);
-  el("solMais3").textContent=fmt(mais3);
-  el("solMais3").className=mais3?"c-red":"c-green";
-  el("solKpiVelhas").classList.toggle("alerta",mais3>0);
-
-  const deptos=solDeptos(s);
-  const velha=deptos.filter(d=>d.sem).sort((a,b)=>b.antiga-a.antiga)[0];
-  if(!velha){ el("solAntiga").textContent="—"; el("solAntigaUn").textContent=""; el("solAntigaSub").textContent="nenhuma esperando"; }
-  else{
-    el("solAntiga").textContent=velha.antiga?fmt(velha.antiga):"hoje";
-    el("solAntigaUn").textContent=velha.antiga?dias(velha.antiga):"";
-    el("solAntiga").className=velha.antiga>3?"c-red":velha.antiga>=1?"c-amber":"c-teal";
-    el("solAntigaSub").textContent=velha.depto;
-  }
-
-  // Lista ao lado: vermelho em quem tem qualquer solicitação sem resposta.
-  el("solDeptos").innerHTML=deptos.map((d,k)=>`<div class="opItem${d.sem?" atraso":""}" data-k="${k}">
-      <div class="opItemTopo"><span>${escapeHtml(d.depto)}</span><b class="${d.sem?"c-red":"zero"}">${d.sem?fmt(d.sem):"✓ 0"}</b></div>
-      <div class="opChips">${d.sem?`<span class="r">${d.ext?`${fmt(d.ext)} externa${d.ext>1?"s":""}`:""}${d.ext&&d.int?" · ":""}${d.int?`${fmt(d.int)} interna${d.int>1?"s":""}`:""}</span>`:""}<span>${fmt(d.abertas)} em aberto</span></div>
-    </div>`).join("");
-
-  // Fila: um departamento por vez; com muitas pendências ele vira mais de uma página.
-  const slots=[];
-  deptos.forEach((d,k)=>{
-    const paginas=Math.max(1,Math.ceil(d.pend.length/SOL_POR_PAGINA));
-    for(let p=0;p<paginas;p++) slots.push({k,p,paginas});
-  });
-  solCar.deptos=deptos; solCar.slots=slots;
-  const chave=deptos.map(d=>`${d.depto}:${d.pend.length}`).join("|");
-  if(chave!==solCar.chave){
-    solCar.chave=chave; solCar.i=0;
-    el("solFila").innerHTML=deptos.map((d,k)=>`<span class="chip${d.sem?" atraso":""}" data-k="${k}">${escapeHtml(d.depto)}</span>`).join("");
-    if(solCar.rodando) solIniciar();
-  }
-  if(solCar.i>=slots.length) solCar.i=0;
-  if(solCar.rodando) mostrarSol(solCar.i,false);
-  else if(telaAtual==="solicitacoes") solIniciar();
-}
-
-function solIniciar(){
-  solParar();
-  const n=solCar.slots.length;
-  if(!n) return;
-  const tempo=Math.max(TEMPO_SOL_MIN,Math.min(TEMPO_SOL_MAX,ROTACAO_MS/n));
-  el("telaSol").style.setProperty("--tempo",`${tempo/1000}s`);
-  solCar.rodando=true; solCar.i=0;
-  mostrarSol(0,true);
-  if(n>1) solCar.timer=setInterval(()=>{ solCar.i=(solCar.i+1)%solCar.slots.length; mostrarSol(solCar.i,true); },tempo);
-}
-
-function solParar(){
-  clearInterval(solCar.timer);
-  solCar.timer=null; solCar.rodando=false;
-}
-
-function mostrarSol(i,animar){
-  const slot=solCar.slots[i]; if(!slot) return;
-  const d=solCar.deptos[slot.k], dest=el("solDest");
-  el("solDNome").textContent=slot.paginas>1?`${d.depto} (${slot.p+1}/${slot.paginas})`:d.depto;
-  const selo=el("solDSelo");
-  if(d.sem){ selo.className="dSelo atraso"; selo.textContent=`⚠ ${fmt(d.sem)} sem resposta`; }
-  else { selo.className="dSelo ok"; selo.textContent="✓ Todas respondidas"; }
-  dest.classList.toggle("alert",d.sem>0);
-  el("solDResumo").innerHTML=[
-    `<span><b>${fmt(d.abertas)}</b> em aberto</span>`,
-    `<span${d.ext?' class="r"':""}><b class="${d.ext?"c-red":""}">${fmt(d.ext)}</b> externas sem resposta</span>`,
-    `<span${d.int?' class="r"':""}><b class="${d.int?"c-red":""}">${fmt(d.int)}</b> internas sem resposta</span>`,
-    d.sem?`<span>mais antiga: <b class="${d.antiga>3?"c-red":""}">${d.antiga?`${fmt(d.antiga)} ${dias(d.antiga)}`:"hoje"}</b></span>`:"",
-  ].join("");
-  const pag=d.pend.slice(slot.p*SOL_POR_PAGINA,(slot.p+1)*SOL_POR_PAGINA);
-  el("solTabela").innerHTML=pag.length?pag.map((x,k)=>{
-    const f=x.horas<24?"f1":x.horas<=72?"f2":"f3";
-    return `<div class="solReq ${f}" style="--d:${.3+k*.06}s"><span class="id">#${escapeHtml(x.id)}</span>
-      <span class="cli">${escapeHtml(x.cliente||"—")}</span><em>${espera(x.horas)}<small>${x.tipo}</small></em></div>`;
-  }).join(""):`<div class="solOk" style="grid-column:1/-1">✓ Nenhuma solicitação esperando resposta</div>`;
-  document.querySelectorAll("#solDeptos .opItem").forEach((n,k)=>n.classList.toggle("ativo",k===slot.k));
-  document.querySelectorAll("#solFila .chip").forEach((n,k)=>n.classList.toggle("ativa",k===slot.k));
-  if(animar){
-    dest.classList.remove("entra"); void dest.offsetWidth; dest.classList.add("entra");
-    const b=el("solBarra"); b.classList.remove("rodando"); void b.offsetWidth; b.classList.add("rodando");
-  }
-}
-
-/* =============================================
    TELAS
 ============================================= */
 // Ordem do rodízio; uma tela sem dados (json ausente ou com erro) é pulada.
 const TELAS=["operacional","solicitacoes","csat"];
-const SECAO={operacional:"telaOperacional",csat:"telaCsat",solicitacoes:"telaSol"};
+const SECAO={operacional:"telaOperacional",solicitacoes:"telaSol",csat:"telaCsat"};
+const FILA={operacional:opFila,solicitacoes:solFila,csat:csFila};
 let telaAtual="operacional", csatOk=false, solOk=false;
 const disponivel=(t)=>t==="operacional"||(t==="csat"&&csatOk)||(t==="solicitacoes"&&solOk);
-const cabecalho={
-  operacional:{titulo:"Conta Junto · Painel Operacional", sub:"Status das entregas por departamento", fonte:"Acessórias", info:"—", em:"—"},
-  csat:{titulo:"Conta Junto · Satisfação do Cliente", sub:"Avaliações dos clientes no WhatsApp e no Acessórias", fonte:"Bradial (WhatsApp) + Acessórias", info:"—", em:"—"},
-  solicitacoes:{titulo:"Conta Junto · Solicitações sem resposta", sub:"Solicitações em aberto no Acessórias esperando a nossa resposta", fonte:"Acessórias",
-                info:"Externas (clientes) e internas (equipe) em que a última mensagem não é nossa", em:"—"},
+const rodape={
+  operacional:{fonte:"Acessórias", info:"Entregas com prazo no mês, por departamento.", em:"—"},
+  solicitacoes:{fonte:"Acessórias", info:"Solicitações abertas no mês; sem resposta quando a última mensagem não é nossa.", em:"—"},
+  csat:{fonte:"Bradial (WhatsApp) e Acessórias", info:"Avaliações do mês, de 1 a 5.", em:"—"},
 };
 
 function mostrarTela(t){
   if(!disponivel(t)) t="operacional";
   const mudou=t!==telaAtual;
   telaAtual=t;
-  // Cada tela recomeça a animação sempre que entra.
-  if(mudou){
-    if(t==="csat") carrosselIniciar(); else carrosselParar();
-    if(t==="operacional") opIniciar(); else opParar();
-    if(t==="solicitacoes") solIniciar(); else solParar();
-  }
+  // Cada tela recomeça a fila sempre que entra; as outras param.
+  if(mudou) for(const x of TELAS){ if(x===t) FILA[x].iniciar(); else FILA[x].parar(); }
   for(const x of TELAS) el(SECAO[x]).classList.toggle("oculta",x!==t);
   const lista=TELAS.filter(disponivel);
-  el("telaDots").innerHTML=lista.map(x=>`<span class="${x===t?"on":""}"></span>`).join("");
-  el("telaDots").classList.toggle("sem-csat",lista.length<2);
-  const h=cabecalho[t];
-  el("titulo").textContent=h.titulo;
-  el("subtitulo").textContent=h.sub;
-  el("sourceName").textContent=h.fonte;
-  el("sourceInfo").textContent=h.info;
-  el("updatedAt").textContent=h.em;
+  el("telaDots").innerHTML=lista.length>1?lista.map(x=>`<span class="${x===t?"on":""}"></span>`).join(""):"";
+  el("sourceName").textContent=rodape[t].fonte;
+  el("sourceInfo").textContent=rodape[t].info;
+  el("updatedAt").textContent=rodape[t].em;
 }
 
 function rodarTela(){
@@ -1112,58 +962,27 @@ function rodarTela(){
 /* =============================================
    LOOP PRINCIPAL
 ============================================= */
+const quando=(iso)=>{ const d=new Date(iso); return `${brDate(d)}, ${brTime(d)}`; };
+
 async function loadAll(){
-  setState("warn","Carregando...");
-  // O CSAT é opcional: se faltar ou falhar, a TV fica só no Painel Operacional.
-  const csat=loadCsat().then(c=>{
-    renderCsat(c);
-    const em=new Date(c.atualizado_em);
-    Object.assign(cabecalho.csat,{
-      sub:`Avaliações dos clientes no ${(c.canais||["WhatsApp"]).join(" e no ")} · ${mesLabel(c.mes)}`,
-      fonte:c.fonte||cabecalho.csat.fonte,
-      info:`Avaliações de ${mesLabel(c.mes)}, comparadas com o mês anterior`,
-      em:`${brDate(em)}, ${brTime(em)}`,
-    });
-    csatOk=true;
-  }).catch(()=>{ csatOk=false; });
-
-  // Solicitações sem resposta: também opcional, falha isolada.
-  const sol=loadSolicitacoes().then(d=>{
-    renderSolicitacoes(d);
-    const em=new Date(d.atualizado_em);
-    const total=(d.externas?.abertas||0)+(d.internas?.abertas||0);
-    cabecalho.solicitacoes.sub=`Solicitações em aberto no Acessórias esperando a nossa resposta · ${fmt(total)} em aberto`;
-    cabecalho.solicitacoes.em=`${brDate(em)}, ${brTime(em)}`;
-    solOk=true;
-  }).catch(()=>{ solOk=false; });
-
+  // Satisfação e Solicitações são opcionais: se faltarem, a TV pula essas telas.
+  const csat=buscar(CSAT_URL).then(c=>{ renderCsat(c); rodape.csat.em=quando(c.atualizado_em); csatOk=true; }).catch(()=>{ csatOk=false; });
+  const sol=buscar(SOL_URL).then(s=>{ renderSolicitacoes(s); rodape.solicitacoes.em=quando(s.atualizado_em); solOk=true; }).catch(()=>{ solOk=false; });
   try{
-    const tasks=await loadAcessorias();
-    const metrics=computeTaskMetrics(Object.values(tasks.entregas||{}));
-    renderDepartments(metrics);
-    const sinc=new Date(tasks.atualizado_em);
-    Object.assign(cabecalho.operacional,{
-      sub:`Status das entregas por departamento · prazo em ${mesLabel(tasks.mes)}`,
-      info:`Entregas com prazo em ${mesLabel(tasks.mes)}`,
-      em:`${brDate(sinc)}, ${brTime(sinc)}`,
-    });
-    if(Date.now()-sinc.getTime() > DESATUALIZADO_MS) setState("warn","Dados desatualizados");
+    const tasks=await buscar(DADOS_URL);
+    renderOperacional(computeTaskMetrics(Object.values(tasks.entregas||{})));
+    rodape.operacional.em=quando(tasks.atualizado_em);
+    if(Date.now()-new Date(tasks.atualizado_em).getTime()>DESATUALIZADO_MS) setState("warn","Dados desatualizados");
     else setState("ok","Atualizado");
     showDiag(false);
   }catch(err){
-    setState("bad","Erro");
+    setState("bad","Erro ao carregar");
     showDiag(true,err.msg||String(err),err.url||DADOS_URL);
   }
-
   await Promise.all([csat,sol]);
   mostrarTela(TELAS.includes(TELA_FIXA)?TELA_FIXA:telaAtual);
 }
 
-/* =============================================
-   CLOCK + INIT
-============================================= */
-function tickClock(){ el("clock").textContent=new Date().toLocaleTimeString("pt-BR"); }
-setInterval(tickClock,1000); tickClock();
 loadAll();
 setInterval(loadAll,REFRESH_MS);
 setInterval(rodarTela,ROTACAO_MS);
