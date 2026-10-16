@@ -86,6 +86,13 @@ jobs:
           ACESSORIAS_TOKEN: ${{ secrets.ACESSORIAS_TOKEN }}
         run: python csat.py --saida _site/csat.json
 
+      # Tela de solicitações sem resposta (externas × internas). Se falhar, a TV pula essa tela.
+      - name: Buscar solicitações sem resposta no Acessórias
+        continue-on-error: true
+        env:
+          ACESSORIAS_TOKEN: ${{ secrets.ACESSORIAS_TOKEN }}
+        run: python solicitacoes.py --saida _site/solicitacoes.json
+
       - run: cp index.html _site/
 
       - uses: actions/upload-pages-artifact@v3
