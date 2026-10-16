@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>Conta Junto — Dashboard TV (v40)</title>
+  <title>Conta Junto — Dashboard TV (v41)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
@@ -326,6 +326,13 @@
     #telaCsat .setorTaxa{margin-top:calc(var(--u)*.2); font-size:calc(var(--f)*1);}
     #telaCsat .setores .legenda{margin-bottom:calc(var(--u)*.5);}
     #telaCsat .baixas{flex:none;}
+    /* A fila de avaliações nunca empurra a largura da tela */
+    #telaCsat .palcoCsat{grid-template-columns:minmax(0,1fr) calc(var(--u)*30);}
+    #telaCsat .rodapeCena, #telaCsat .cena{min-width:0;}
+    #telaCsat .fila{min-width:0; overflow:hidden; flex-shrink:1;}
+    #telaCsat .avatar .ini{font-family:Comfortaa,Nunito,sans-serif; font-weight:700; font-size:calc(var(--u)*5.6); color:#fff; letter-spacing:-.02em;}
+    #telaCsat .nome{display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; max-width:100%;}
+    #telaCsat .mini .ini{font-family:Comfortaa,Nunito,sans-serif; font-weight:700; font-size:calc(var(--u)*.95); color:#fff;}
     #telaCsat .comentario.semTexto{color:var(--suave); font-weight:700;}
 
     /* Rodapé da página */
@@ -804,6 +811,8 @@ function delta(atual,anterior,{casas=0,unid="",escala=1,rotulo}){
 
 let csInfo={rotAnt:"—",mes:null};
 const csFila=criarFila("telaCsat",mostrarEscopo);
+// Quantas avaliações passam em cada escopo (o escritório tem dezenas; as com comentário vêm primeiro).
+const MAX_AVALIACOES=12;
 const pararEscopos=csFila.parar.bind(csFila);
 csFila.parar=function(){ pararEscopos(); carrosselParar(); };
 
@@ -876,16 +885,28 @@ function mostrarEscopo(i,animar){
   el("baixas").textContent=baixas?`⚠ ${num(baixas)} ${baixas===1?"nota":"notas"} de 1 a 3 no mês: retornar ao cliente`:"✓ Nenhuma nota de 1 a 3 no mês";
   document.querySelectorAll("#setorLista .setor").forEach(n=>n.classList.toggle("ativo",!!e.setor&&n.dataset.setor===e.setor));
   document.querySelectorAll("#csChips .chip").forEach((n,k)=>n.classList.toggle("ativa",k===i));
-  carrosselDefinir(e.coms);
+  carrosselDefinir(e.coms,animar);
 }
 
 /* ---- Comentários um a um, do escopo em destaque ---- */
-const carrossel={lista:[],i:0,timer:null};
+const carrossel={lista:[],i:0,timer:null,chave:null};
+// Iniciais do cliente no lugar do boneco: "SAO JOSE COMERCIO LTDA" vira "SJ", "Tatiana" vira "T".
+const PALAVRAS_VAZIAS=new Set(["LTDA","ME","EPP","EIRELI","SA","S/A","S.A.","DE","DA","DO","DAS","DOS","E","&"]);
+function iniciais(nome){
+  const p=String(nome||"").toUpperCase().split(/\s+/).filter(w=>w&&!PALAVRAS_VAZIAS.has(w)&&/[A-ZÀ-Ú0-9]/.test(w));
+  return p.slice(0,2).map(w=>w.replace(/[^A-ZÀ-Ú0-9]/g,"")[0]||"").join("");
+}
+const rosto=(a)=>{ const ini=iniciais(a?.cliente); return ini?`<span class="ini">${escapeHtml(ini)}</span>`:ICONE_PESSOA; };
 
-function carrosselDefinir(lista){
+function carrosselDefinir(lista,forcar){
+  lista=[...lista.filter(x=>x.texto),...lista.filter(x=>!x.texto)].slice(0,MAX_AVALIACOES);
+  // Dados iguais a cada minuto: não reinicia a fila (os ícones não pulam de novo).
+  const chave=JSON.stringify(lista);
+  if(!forcar&&chave===carrossel.chave&&carrossel.timer) return;
+  carrossel.chave=chave;
   carrosselParar();
   carrossel.lista=lista; carrossel.i=0;
-  el("fila").innerHTML=lista.map((_,k)=>`<div class="mini" style="--cor:${CORES_AVATAR[k%CORES_AVATAR.length]}">${ICONE_PESSOA}</div>`).join("");
+  el("fila").innerHTML=lista.map((a,k)=>`<div class="mini" style="--cor:${CORES_AVATAR[k%CORES_AVATAR.length]}">${rosto(a)}</div>`).join("");
   mostrarComentario(0);
   if(lista.length>1) carrossel.timer=setInterval(proximoComentario,TEMPO_COMENTARIO);
 }
@@ -905,7 +926,7 @@ function mostrarComentario(i){
     return;
   }
   cena.style.setProperty("--cor",CORES_AVATAR[i%CORES_AVATAR.length]);
-  el("avatar").innerHTML=ICONE_PESSOA;
+  el("avatar").innerHTML=rosto(a);
   // Nome do cliente (pedido do Kaio em 16/10/2026); sem nome, fica o setor que atendeu.
   el("nome").textContent=a.cliente||a.setor||"Cliente";
   el("origem").textContent=`${a.cliente?`${a.setor}, `:""}via ${a.canal||"WhatsApp"}, ${brDate(parseDate(a.data))}`;
